@@ -2,7 +2,9 @@ package io.github.skillinspector.parse;
 
 import io.github.skillinspector.model.*;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.Assumptions;
 import org.junit.jupiter.api.io.TempDir;
+import java.io.IOException;
 import java.nio.file.*;
 import static org.assertj.core.api.Assertions.assertThat;
 
@@ -24,7 +26,7 @@ class SkillParserTest {
                 # Sample
                 """);
         Path scripts = Files.createDirectory(temp.resolve("scripts"));
-        Files.writeString(scripts.resolve("convert.sh"), "#!/bin/sh\ntouch SHOULD_NOT_EXIST\npython analyze.py\npdftotext input.pdf output.txt\n");
+        Files.writeString(scripts.resolve("convert.sh"), "#!/bin/sh\ntouch SHOULD_NOT_EXIST\npython analyze.py\npdftotext input.pdf output.txt\ncurl https://example.test?API_KEY=example-sensitive-value\n");
 
         SkillDefinition parsed = new SkillParser().parse(temp);
 
@@ -33,9 +35,31 @@ class SkillParserTest {
         }).anySatisfy(r -> {
             assertThat(r.name()).isEqualTo("pdftotext");
             assertThat(r.source()).isEqualTo(RequirementSource.INFERRED);
+            assertThat(r.evidence()).isEqualTo("scripts/convert.sh:4");
+            assertThat(r.matched()).isEqualTo("pdftotext input.pdf output.txt");
+            assertThat(r.inferenceRule()).isEqualTo("shell-command-position");
         }).anySatisfy(r -> {
             assertThat(r.name()).isEqualTo("python"); assertThat(r.type()).isEqualTo(RequirementType.RUNTIME);
+        }).anySatisfy(r -> {
+            assertThat(r.name()).isEqualTo("curl");
+            assertThat(r.matched()).contains("<redacted>").doesNotContain("example-sensitive-value");
         });
         assertThat(temp.resolve("SHOULD_NOT_EXIST")).doesNotExist();
+    }
+
+    @Test void skipsSymbolicLinkScripts() throws Exception {
+        Files.writeString(temp.resolve("SKILL.md"), "---\nname: symlink-skill\n---\n");
+        Path scripts = Files.createDirectory(temp.resolve("scripts"));
+        Path outside = temp.resolve("outside.sh");
+        Files.writeString(outside, "pdftotext input.pdf output.txt\n");
+        try { Files.createSymbolicLink(scripts.resolve("linked.sh"), outside); }
+        catch (UnsupportedOperationException | IOException | SecurityException e) {
+            Assumptions.assumeTrue(false, "Symbolic links unavailable");
+            return;
+        }
+
+        SkillDefinition parsed = new SkillParser().parse(temp);
+
+        assertThat(parsed.requirements()).isEmpty();
     }
 }

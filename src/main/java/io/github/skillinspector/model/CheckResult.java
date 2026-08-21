@@ -6,4 +6,4 @@ import com.fasterxml.jackson.annotation.JsonInclude;
 public record CheckResult(
         RequirementType type, String name, String required, String actual,
         CheckStatus status, RequirementSource source, Confidence confidence,
-        String evidence, String message) {}
+        String evidence, String matched, String inferenceRule, String message) {}

@@ -19,7 +19,7 @@ class CheckersTest {
 
     @Test void inferredMissingCommandIsWarning() {
         SkillRequirement requirement = SkillRequirement.inferred(RequirementType.COMMAND, "pdftotext", "present", Confidence.HIGH,
-                "scripts/a.sh:1");
+                "scripts/a.sh:1", "pdftotext in.pdf out.txt", "shell-command-position");
         assertThat(new CommandChecker().check(requirement, root, new FakeProbe()).status()).isEqualTo(CheckStatus.WARNING);
     }
 

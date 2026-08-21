@@ -1,0 +1,85 @@
+{
+  "schemaVersion": "1.0",
+  "datasetVersion": "v0.1.1-pilot-2026-08-21",
+  "selectionPolicy": "Public Agent Skills, fixed commits, multiple publishers, mixed scripted and instruction-only Skills; no repository content is redistributed.",
+  "repositories": [
+    {
+      "id": "anthropics-skills",
+      "url": "https://github.com/anthropics/skills.git",
+      "commit": "0a64e398ec6bb34a494f0c347e8ccae53a862f8e",
+      "license": "Per-Skill Anthropic terms",
+      "skills": [
+        {"id": "anthropic-docx", "path": "skills/docx", "category": "documents"},
+        {"id": "anthropic-pdf", "path": "skills/pdf", "category": "documents"},
+        {"id": "anthropic-pptx", "path": "skills/pptx", "category": "documents"},
+        {"id": "anthropic-xlsx", "path": "skills/xlsx", "category": "documents"},
+        {"id": "anthropic-web-artifacts", "path": "skills/web-artifacts-builder", "category": "web"},
+        {"id": "anthropic-webapp-testing", "path": "skills/webapp-testing", "category": "testing"},
+        {"id": "anthropic-mcp-builder", "path": "skills/mcp-builder", "category": "development"},
+        {"id": "anthropic-skill-creator", "path": "skills/skill-creator", "category": "meta"}
+      ]
+    },
+    {
+      "id": "openai-skills",
+      "url": "https://github.com/openai/skills.git",
+      "commit": "49f948faa9258a0c61caceaf225e179651397431",
+      "license": "Apache-2.0 per selected Skill",
+      "skills": [
+        {"id": "openai-openai-docs", "path": "skills/.curated/openai-docs", "category": "documentation"},
+        {"id": "openai-security-ownership-map", "path": "skills/.curated/security-ownership-map", "category": "security"},
+        {"id": "openai-gh-fix-ci", "path": "skills/.curated/gh-fix-ci", "category": "development"},
+        {"id": "openai-jupyter-notebook", "path": "skills/.curated/jupyter-notebook", "category": "data"},
+        {"id": "openai-vercel-deploy", "path": "skills/.curated/vercel-deploy", "category": "deployment"},
+        {"id": "openai-gh-address-comments", "path": "skills/.curated/gh-address-comments", "category": "development"},
+        {"id": "openai-screenshot", "path": "skills/.curated/screenshot", "category": "media"},
+        {"id": "openai-playwright", "path": "skills/.curated/playwright", "category": "testing"},
+        {"id": "openai-speech", "path": "skills/.curated/speech", "category": "media"},
+        {"id": "openai-transcribe", "path": "skills/.curated/transcribe", "category": "media"}
+      ]
+    },
+    {
+      "id": "openai-plugins",
+      "url": "https://github.com/openai/plugins.git",
+      "commit": "11c74d6ba24d3a6d48f54a194cd00ef3beea18f9",
+      "license": "Per-plugin terms; no source redistributed",
+      "skills": [
+        {"id": "plugin-hf-llm-trainer", "path": "plugins/hugging-face/skills/llm-trainer", "category": "ai-ml"},
+        {"id": "plugin-hf-jobs", "path": "plugins/hugging-face/skills/jobs", "category": "ai-ml"},
+        {"id": "plugin-hf-community-evals", "path": "plugins/hugging-face/skills/community-evals", "category": "ai-ml"},
+        {"id": "plugin-ncbi-blast", "path": "plugins/life-science-research/skills/ncbi-blast-skill", "category": "life-science"},
+        {"id": "plugin-shopify-dev", "path": "plugins/shopify/skills/shopify-dev", "category": "commerce"}
+      ]
+    },
+    {
+      "id": "jayrha-agent-skills",
+      "url": "https://github.com/JayRHa/AgentSkills.git",
+      "commit": "7ce3d8d6af7ca3905c688c649000b98e8e57db4a",
+      "license": "MIT",
+      "skills": [
+        {"id": "jayrha-pandas-cleaning", "path": "pandas-data-cleaning", "category": "data"},
+        {"id": "jayrha-aws-cost", "path": "aws-cost-optimizer", "category": "cloud"},
+        {"id": "jayrha-github-actions", "path": "github-actions-builder", "category": "development"},
+        {"id": "jayrha-dockerfile", "path": "dockerfile-pro", "category": "development"}
+      ]
+    },
+    {
+      "id": "evilmartians-agent-skills",
+      "url": "https://github.com/evilmartians/agent-skills.git",
+      "commit": "a2a83b280a2c5b9a6176c5934298fad0224bbce4",
+      "license": "MIT",
+      "skills": [
+        {"id": "evilmartians-secure-npm", "path": "skills/secure-npm-package", "category": "security"}
+      ]
+    },
+    {
+      "id": "profilespider-skills",
+      "url": "https://github.com/spiralcrew-ou/profilespider-agent-skills.git",
+      "commit": "6c65d0507687364704a180476613b72467028e87",
+      "license": "MIT",
+      "skills": [
+        {"id": "profilespider-company-research", "path": "company-research", "category": "research"},
+        {"id": "profilespider-lead-analysis", "path": "lead-list-analysis", "category": "research"}
+      ]
+    }
+  ]
+}

@@ -12,7 +12,7 @@ import java.nio.file.Path;
 import java.util.Map;
 import java.util.concurrent.Callable;
 
-@Command(name = "skill-inspector", mixinStandardHelpOptions = true, version = "skill-inspector 0.1.0",
+@Command(name = "skill-inspector", mixinStandardHelpOptions = true, version = "skill-inspector 0.1.1-SNAPSHOT",
         description = "Preflight compatibility inspection for Agent Skills.",
         subcommands = SkillInspectorCli.InspectCommand.class)
 public final class SkillInspectorCli implements Runnable {

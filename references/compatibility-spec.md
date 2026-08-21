@@ -44,6 +44,8 @@ Supported version constraints are `>`, `>=`, `<`, `<=`, `=`, exact versions, `*`
 
 ## Stable result contract
 
-JSON reports use `schemaVersion: "1.0"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type` (`runtime`, `command`, `environmentVariable`, `file`, `directory`, or `operatingSystem`), `name`, `required`, `actual`, `status`, `source`, optional `confidence`, `evidence`, and `message`. Additive fields may appear in compatible V0.1 releases; consumers must ignore unknown fields.
+JSON reports use `schemaVersion: "1.0"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type` (`runtime`, `command`, `environmentVariable`, `file`, `directory`, or `operatingSystem`), `name`, `required`, `actual`, `status`, `source`, optional `confidence`, `evidence`, `matched`, `inferenceRule`, and `message`. `matched` is limited to 240 characters and redacts likely token, secret, password, and API-key assignments. Additive fields may appear in compatible V0.1 releases; consumers must ignore unknown fields.
+
+Every inferred dependency must be explainable. `evidence` identifies the file and line when available, `matched` shows the bounded static text that triggered inference, and `inferenceRule` names the deterministic rule. Symbolic links under `scripts/` are never inspected.
 
 The score is transparent: PASS=100 points, WARNING=50, FAIL/UNKNOWN=0, divided by the number of checks and rounded. An empty inspection scores 0 and is WARNING. A single declared required FAIL forces overall FAIL regardless of score.

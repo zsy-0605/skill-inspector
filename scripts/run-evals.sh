@@ -11,6 +11,11 @@ if ! "$project_dir/mvnw" -q -f "$project_dir/pom.xml" test package; then
   echo "ERROR: Maven tests or package failed." >&2
   exit 1
 fi
+if ! python3 -m unittest discover -s "$project_dir/benchmark/tests" -p 'test_*.py'; then
+  echo "ERROR: Benchmark tooling tests failed." >&2
+  exit 1
+fi
+
 assert_case() {
   local name=$1 expected_exit=$2 expected_text=$3 target=$4
   local output exit_code

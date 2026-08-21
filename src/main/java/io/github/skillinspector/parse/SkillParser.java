@@ -21,6 +21,9 @@ public final class SkillParser {
             "git", "curl", "wget", "ffmpeg", "ffprobe", "pdftotext", "docker", "mvn", "npm", "npx",
             "python", "python3", "java", "node", "bash", "sh", "convert", "magick");
     private static final Pattern SIMPLE_COMMAND = Pattern.compile("^\\s*(?:sudo\\s+)?([A-Za-z][A-Za-z0-9._+-]*)\\s+(?:[^|;&]|$)");
+    private static final Pattern SENSITIVE_LITERAL = Pattern.compile(
+            "(?i)([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_KEY)[A-Z0-9_]*\\s*=\\s*)(\\\"[^\\\"]*\\\"|'[^']*'|[^\\s]+)");
+    private static final int MAX_MATCHED_LENGTH = 240;
 
     public SkillDefinition parse(Path target) {
         Path root = target.toAbsolutePath().normalize();
@@ -96,7 +99,8 @@ public final class SkillParser {
         Path scripts = root.resolve("scripts");
         if (!Files.isDirectory(scripts)) return;
         try (Stream<Path> paths = Files.walk(scripts, 5)) {
-            for (Path path : paths.filter(Files::isRegularFile).sorted().toList()) {
+            for (Path path : paths.filter(candidate -> Files.isRegularFile(candidate, LinkOption.NOFOLLOW_LINKS))
+                    .filter(candidate -> !Files.isSymbolicLink(candidate)).sorted().toList()) {
                 if (Files.size(path) > MAX_FILE_BYTES || !isScript(path)) continue;
                 String relative = root.relativize(path).toString().replace('\\', '/');
                 List<String> lines = Files.readAllLines(path, StandardCharsets.UTF_8);
@@ -113,10 +117,18 @@ public final class SkillParser {
 
     private void inferRuntime(List<String> lines, String evidence, List<SkillRequirement> out) {
         String name = evidence.toLowerCase();
-        if (name.endsWith(".py") || (!lines.isEmpty() && lines.getFirst().matches("^#!.*\\bpython[0-9.]*\\b.*")))
-            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "python", "*", Confidence.HIGH, evidence));
-        if (name.matches(".*\\.(js|mjs|cjs)$") || (!lines.isEmpty() && lines.getFirst().matches("^#!.*\\bnode\\b.*")))
-            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "node", "*", Confidence.HIGH, evidence));
+        if (name.endsWith(".py"))
+            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "python", "*", Confidence.HIGH,
+                    evidence, evidence, "script-extension"));
+        else if (!lines.isEmpty() && lines.getFirst().matches("^#!.*\\bpython[0-9.]*\\b.*"))
+            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "python", "*", Confidence.HIGH,
+                    evidence + ":1", sanitizeMatched(lines.getFirst()), "shebang"));
+        if (name.matches(".*\\.(js|mjs|cjs)$"))
+            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "node", "*", Confidence.HIGH,
+                    evidence, evidence, "script-extension"));
+        else if (!lines.isEmpty() && lines.getFirst().matches("^#!.*\\bnode\\b.*"))
+            out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "node", "*", Confidence.HIGH,
+                    evidence + ":1", sanitizeMatched(lines.getFirst()), "shebang"));
     }
 
     private void inferCommands(List<String> lines, String evidence, List<SkillRequirement> out) {
@@ -128,15 +140,17 @@ public final class SkillParser {
             if (matcher.find()) {
                 String command = matcher.group(1);
                 if (!SHELL_BUILTINS.contains(command) && INFERABLE_COMMANDS.contains(command.toLowerCase())) {
+                    String location = evidence + ":" + (i + 1);
+                    String matched = sanitizeMatched(lines.get(i));
                     out.add(SkillRequirement.inferred(RequirementType.COMMAND, command, "present", Confidence.HIGH,
-                            evidence + ":" + (i + 1)));
+                            location, matched, "shell-command-position"));
                     String runtime = switch (command.toLowerCase()) {
                         case "python", "python3" -> "python";
                         case "node", "java" -> command.toLowerCase();
                         default -> null;
                     };
                     if (runtime != null) out.add(SkillRequirement.inferred(RequirementType.RUNTIME, runtime, "*", Confidence.HIGH,
-                            evidence + ":" + (i + 1)));
+                            location, matched, "shell-runtime-command"));
                 }
             }
         }
@@ -150,6 +164,11 @@ public final class SkillParser {
             if (old == null || old.source() == RequirementSource.INFERRED && item.source() == RequirementSource.DECLARED) unique.put(key, item);
         }
         return List.copyOf(unique.values());
+    }
+
+    private String sanitizeMatched(String raw) {
+        String redacted = SENSITIVE_LITERAL.matcher(raw.strip()).replaceAll("$1<redacted>");
+        return redacted.length() <= MAX_MATCHED_LENGTH ? redacted : redacted.substring(0, MAX_MATCHED_LENGTH - 1) + "…";
     }
 
     private String stringValue(Object value) { return value == null ? "" : String.valueOf(value); }

@@ -2,3 +2,9 @@
 /.idea/
 *.iml
 .DS_Store
+/benchmark/.cache/
+/benchmark/results/latest.json
+/benchmark/results/latest.md
+/benchmark/results/*.json
+__pycache__/
+*.pyc

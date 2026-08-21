@@ -12,6 +12,8 @@ Blocking
 
 Uncertainty
 - INFERRED command `docker` (MEDIUM, scripts/run.sh:14): not confirmed
+  Matched: `docker build -t "$IMAGE" .`
+  Rule: `shell-command-position`
 
 Recommendation
 Resolve declared blockers, then rerun the preflight inspection. Confirm inferred requirements with the Skill author when evidence is ambiguous.

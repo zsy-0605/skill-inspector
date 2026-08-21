@@ -20,6 +20,8 @@ public final class HumanReportRenderer {
                         .append(" | Source: ").append(check.source());
                 if (check.confidence() != null) out.append(" | Confidence: ").append(check.confidence());
                 if (check.evidence() != null) out.append("\n  Evidence: ").append(check.evidence());
+                if (check.matched() != null) out.append("\n  Matched: ").append(check.matched());
+                if (check.inferenceRule() != null) out.append("\n  Rule: ").append(check.inferenceRule());
                 out.append("\n");
             });
         });

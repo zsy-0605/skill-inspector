@@ -1,0 +1,40 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Inspector real-world ground truth",
+  "type": "object",
+  "required": ["schemaVersion", "datasetVersion", "environment", "scope", "skills"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "datasetVersion": {"type": "string"},
+    "environment": {"type": "string"},
+    "scope": {"type": "array", "items": {"type": "string"}},
+    "reviewPolicy": {"type": "string"},
+    "skills": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["id", "reviewStatus", "dependencies"],
+        "properties": {
+          "id": {"type": "string"},
+          "reviewStatus": {"enum": ["PENDING", "REVIEWED"]},
+          "actualReadiness": {"enum": ["READY", "NOT_READY", "UNVERIFIABLE", null]},
+          "dependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "name", "inScope", "evidence"],
+              "properties": {
+                "type": {"type": "string"},
+                "name": {"type": "string"},
+                "inScope": {"type": "boolean"},
+                "evidence": {"type": "string"},
+                "notes": {"type": "string"}
+              }
+            }
+          },
+          "notes": {"type": "string"}
+        }
+      }
+    }
+  }
+}
