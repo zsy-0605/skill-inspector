@@ -1,0 +1,1 @@
+Static fixture; it is never executed.

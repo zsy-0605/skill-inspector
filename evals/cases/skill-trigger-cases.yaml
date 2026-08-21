@@ -1,0 +1,14 @@
+positive:
+  - "检查这个 Skill 能不能运行。"
+  - "看看它缺什么依赖。"
+  - "运行前帮我做环境检查。"
+  - "为什么这个 Skill 加载以后跑不起来？"
+  - "检查这个 GitHub Skill 是否适配我的环境。"
+negative:
+  - "帮我写一个 Java Controller。"
+  - "总结这篇文章。"
+  - "解释一下 TCP 三次握手。"
+  - "帮我优化 SQL。"
+expected:
+  positive: "Skill Inspector should activate"
+  negative: "Skill Inspector should not activate"

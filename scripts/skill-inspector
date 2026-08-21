@@ -1,0 +1,9 @@
+#!/usr/bin/env sh
+set -eu
+project_dir=$(CDPATH= cd -- "$(dirname -- "$0")/.." && pwd)
+jar="$project_dir/target/skill-inspector.jar"
+if [ ! -f "$jar" ]; then
+  echo "Skill Inspector is not built. Run: ./mvnw -q -DskipTests package" >&2
+  exit 1
+fi
+exec java -jar "$jar" "$@"
