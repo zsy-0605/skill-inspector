@@ -1,9 +1,9 @@
 # Agent-only benchmark prompt
 
-Inspect the Agent Skill at `{{TARGET_SKILL}}` and decide whether it can run in the described environment.
+Inspect the Agent Skill in the current directory and decide whether it can run in the controlled local environment. You may use read-only shell checks such as `command -v` and fixed runtime `--version` commands, but must perform the environment reasoning yourself.
 
 Do not use Skill Inspector or its Java report. Read `SKILL.md` and only relevant static files. Never execute target code, import its modules, install dependencies, or modify the target.
 
-Identify requirements in this evaluation scope only: runtime, command, environmentVariable, file, directory, and operatingSystem. Preserve evidence as a relative file path plus line number where possible. Package/library requirements may be included with `inScope: false`.
+Extract external local-environment requirements only: language runtimes, non-baseline third-party CLI commands, environment variables, fixed external files/directories, and operating-system constraints. Exclude user task inputs/outputs, paths supplied at invocation time, files bundled inside this Skill, language packages/libraries, shell builtins, and ordinary POSIX/coreutils. A dependency used only by an alternative path is CONDITIONAL. REQUIRED means every supported path needs it. Canonicalize runtime and command names to lowercase and preserve exact relative file:line evidence.
 
-Return only JSON conforming to `benchmark/predictions.schema.json`. Use method `AGENT_ONLY`. Do not treat missing evidence as satisfied and do not invent current environment facts.
+Use READY only when the supported workflow is runnable and no discovered uncertainty remains; WARNING when a runnable path exists but conditional or optional checks remain unresolved; NOT_READY when a universal required dependency is missing or no supported path is runnable; otherwise UNVERIFIABLE. Return only JSON conforming to `benchmark/agent-only-output.schema.json`. Do not use Skill Inspector, its source, reports, JAR, or repository files outside this target Skill.

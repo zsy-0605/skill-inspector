@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "id": "linux-system-path-2026-08-21",
+  "operatingSystem": "linux",
+  "pathPolicy": "/usr/bin:/bin",
+  "runtimes": {
+    "java": "11.0.27",
+    "python": "3.8.10",
+    "node": null
+  },
+  "environmentVariables": "All benchmarked dependency variables are removed from the controlled process environment.",
+  "notes": "Codex and the Java inspector receive the same sanitized environment. Network is used only for Codex model access; target code is never executed."
+}

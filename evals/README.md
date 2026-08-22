@@ -4,8 +4,9 @@ The regression suite has three layers:
 
 1. JUnit checks deterministic version, command, environment, file, directory, OS, parsing, scoring, and secret-redaction behavior.
 2. `scripts/run-evals.sh` executes synthetic Skills covering READY, WARNING, and FAIL, including a cross-platform generated OS mismatch.
-3. `cases/skill-trigger-cases.yaml` is the fixed prompt set for comparing Agent-only and Agent + Skill Inspector trigger and diagnosis behavior.
+3. `cases/skill-trigger-cases.yaml` is the fixed synthetic prompt set for trigger and diagnosis behavior.
+4. [`benchmark/`](../benchmark/README.md) contains the 30-Skill, three-run controlled Agent-only versus Agent + Inspector experiment.
 
-For a baseline experiment, give the same target Skills to the same Agent/model twice: first with only the target `SKILL.md`, then with Skill Inspector available. Label actual requirements in advance and record dependency recall, precision, environment accuracy, false-ready rate, false-block rate, and diagnosis consistency. Do not infer those metrics from the deterministic fixture suite; they require repeated Agent trials.
+For the controlled experiment, give the same target Skills to the same fixed model three times per condition. The Agent-only condition reasons about the environment itself; the hybrid condition hands semantic requirements to Java. Record dependency recall, precision, required recall, exact classification accuracy, false-ready, false-block, blocking recall, and diagnosis completeness. Do not infer those metrics from the deterministic fixture suite.
 
 Declared dependency recall and deterministic environment accuracy are gated at 100%. Static inference precision/recall targets are at least 90% on a separately labeled corpus. False-ready rate is the primary safety metric and should approach 0%.

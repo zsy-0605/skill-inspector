@@ -4,7 +4,7 @@
   "type": "object",
   "required": ["schemaVersion", "datasetVersion", "environment", "scope", "skills"],
   "properties": {
-    "schemaVersion": {"const": "1.0"},
+    "schemaVersion": {"type": "string", "const": "1.1"},
     "datasetVersion": {"type": "string"},
     "environment": {"type": "string"},
     "scope": {"type": "array", "items": {"type": "string"}},
@@ -13,26 +13,47 @@
       "type": "array",
       "items": {
         "type": "object",
-        "required": ["id", "reviewStatus", "dependencies"],
+        "required": ["id", "reviewStatus", "actualReadiness", "blockingDependencies", "dependencies", "review"],
         "properties": {
           "id": {"type": "string"},
-          "reviewStatus": {"enum": ["PENDING", "REVIEWED"]},
-          "actualReadiness": {"enum": ["READY", "NOT_READY", "UNVERIFIABLE", null]},
+          "reviewStatus": {"enum": ["PENDING", "AI_DRAFT", "AI_REVIEWED", "HUMAN_REVIEWED"]},
+          "actualReadiness": {"enum": ["READY", "WARNING", "NOT_READY", "UNVERIFIABLE", null]},
+          "blockingDependencies": {
+            "type": "array",
+            "items": {
+              "type": "object",
+              "required": ["type", "name"],
+              "properties": {"type": {"type": "string"}, "name": {"type": "string"}}
+            }
+          },
           "dependencies": {
             "type": "array",
             "items": {
               "type": "object",
-              "required": ["type", "name", "inScope", "evidence"],
+              "required": ["type", "name", "necessity", "source", "inScope", "evidence"],
               "properties": {
                 "type": {"type": "string"},
                 "name": {"type": "string"},
+                "required": {"type": "string"},
+                "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+                "source": {"enum": ["COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"]},
                 "inScope": {"type": "boolean"},
                 "evidence": {"type": "string"},
                 "notes": {"type": "string"}
               }
             }
           },
-          "notes": {"type": "string"}
+          "notes": {"type": "string"},
+          "review": {
+            "type": "object",
+            "required": ["method", "model", "reviewedAt", "humanSignoff"],
+            "properties": {
+              "method": {"type": "string"},
+              "model": {"type": "string"},
+              "reviewedAt": {"type": "string"},
+              "humanSignoff": {"type": "boolean"}
+            }
+          }
         }
       }
     }

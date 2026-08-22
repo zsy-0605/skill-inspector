@@ -1,0 +1,26 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["requirements", "notes"],
+  "properties": {
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "name", "necessity", "source", "inScope", "evidence", "notes"],
+        "properties": {
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "name": {"type": "string"},
+          "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+          "source": {"type": "string", "enum": ["COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"]},
+          "inScope": {"type": "boolean"},
+          "evidence": {"type": "string"},
+          "notes": {"type": "string"}
+        }
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}

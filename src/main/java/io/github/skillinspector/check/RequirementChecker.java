@@ -9,9 +9,9 @@ public interface RequirementChecker {
 
     default CheckResult result(SkillRequirement requirement, CheckStatus rawStatus, String actual, String message) {
         CheckStatus status = rawStatus;
-        if (rawStatus == CheckStatus.FAIL && (requirement.optional() || requirement.source() == RequirementSource.INFERRED)) status = CheckStatus.WARNING;
+        if (rawStatus == CheckStatus.FAIL && requirement.necessity() != RequirementNecessity.REQUIRED) status = CheckStatus.WARNING;
         return new CheckResult(requirement.type(), requirement.name(), requirement.required(), actual, status,
-                requirement.source(), requirement.confidence(), requirement.evidence(), requirement.matched(),
+                requirement.source(), requirement.necessity(), requirement.confidence(), requirement.evidence(), requirement.matched(),
                 requirement.inferenceRule(), message);
     }
 }

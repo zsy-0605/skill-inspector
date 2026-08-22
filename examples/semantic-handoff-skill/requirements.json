@@ -1,0 +1,13 @@
+{
+  "schemaVersion": "1.0",
+  "requirements": [{
+    "type": "command",
+    "name": "skill-inspector-semantic-command-that-does-not-exist-xyz",
+    "necessity": "REQUIRED",
+    "source": "INFERRED",
+    "confidence": "HIGH",
+    "evidence": "SKILL.md:8",
+    "matched": "This fixture intentionally leaves its prose requirement to the Agent handoff.",
+    "inferenceRule": "agent-semantic-extraction"
+  }]
+}

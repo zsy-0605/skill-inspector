@@ -1,39 +1,3470 @@
 {
-  "schemaVersion": "1.0",
+  "schemaVersion": "1.1",
   "datasetVersion": "v0.1.1-pilot-2026-08-21",
-  "environment": "TO_BE_RECORDED_AT_REVIEW_TIME",
-  "scope": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem"],
-  "reviewPolicy": "A reviewer must read SKILL.md and relevant static files. Do not run target code. Record one evidence location for every dependency.",
+  "environment": "linux-system-path-2026-08-21",
+  "scope": [
+    "runtime",
+    "command",
+    "environmentVariable",
+    "file",
+    "directory",
+    "operatingSystem"
+  ],
+  "reviewPolicy": "AI-assisted static review; dependencies require evidence and keep necessity separate from source. AI_REVIEWED requires deterministic evidence and environment validation. Human signoff is never implied.",
   "skills": [
-    {"id": "anthropic-docx", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-pdf", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-pptx", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-xlsx", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-web-artifacts", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-webapp-testing", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-mcp-builder", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "anthropic-skill-creator", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-openai-docs", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-security-ownership-map", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-gh-fix-ci", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-jupyter-notebook", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-vercel-deploy", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-gh-address-comments", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-screenshot", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-playwright", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-speech", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "openai-transcribe", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "plugin-hf-llm-trainer", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "plugin-hf-jobs", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "plugin-hf-community-evals", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "plugin-ncbi-blast", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "plugin-shopify-dev", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "jayrha-pandas-cleaning", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "jayrha-aws-cost", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "jayrha-github-actions", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "jayrha-dockerfile", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "evilmartians-secure-npm", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "profilespider-company-research", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []},
-    {"id": "profilespider-lead-analysis", "reviewStatus": "PENDING", "actualReadiness": null, "dependencies": []}
+    {
+      "id": "anthropic-docx",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:13",
+          "notes": "Required when creating a new document with a docx npm script."
+        },
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:40",
+          "notes": "Required for the bundled conversion, merge, validation, tracked-change, and comment helpers."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:21",
+          "notes": "Needed only to install docx if the preinstalled package cannot be required."
+        },
+        {
+          "type": "command",
+          "name": "pandoc",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:15",
+          "notes": "Required for the document-to-Markdown reading workflow."
+        },
+        {
+          "type": "command",
+          "name": "unzip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:52",
+          "notes": "Required by the documented archive-based workflow for editing an existing document."
+        },
+        {
+          "type": "command",
+          "name": "zip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:56",
+          "notes": "Required to repack a document in the documented archive-based editing workflow."
+        },
+        {
+          "type": "command",
+          "name": "soffice",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:40",
+          "notes": "Required for rendering verification, legacy .doc conversion, and accepting tracked changes."
+        },
+        {
+          "type": "command",
+          "name": "pdftoppm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:41",
+          "notes": "Required to rasterize rendered PDF pages during visual verification."
+        },
+        {
+          "type": "command",
+          "name": "git",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/validators/redlining.py:194",
+          "notes": "Used only to enhance redlining failures with a word-level diff; validation continues without it."
+        },
+        {
+          "type": "command",
+          "name": "gcc",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:69",
+          "notes": "Required only to build the LibreOffice socket shim when AF_UNIX sockets are blocked."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "operating-system",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:33",
+          "notes": "The AF_UNIX fallback path relies on Linux-style LD_PRELOAD behavior.",
+          "required": "linux"
+        },
+        {
+          "type": "package",
+          "name": "docx",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:21",
+          "notes": "Node package required for the document-creation workflow."
+        },
+        {
+          "type": "package",
+          "name": "defusedxml",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/merge_runs.py:33",
+          "notes": "Python library required by the merge, comment, and validation helpers."
+        },
+        {
+          "type": "package",
+          "name": "lxml",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/office/validators/base.py:11",
+          "notes": "Python library required for XSD-based Office document validation."
+        }
+      ],
+      "notes": "Requirements are conditional where they apply only to a supported workflow or fallback rather than every Skill execution path. Bundled scripts, templates, and schemas are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-pdf",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "forms.md:4",
+          "notes": "Required for the documented Python-based form-processing workflow and Python examples; command-line and JavaScript alternatives do not require it."
+        },
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "reference.md:55",
+          "notes": "Required for the JavaScript pdf-lib examples that use Node's built-in fs module."
+        },
+        {
+          "type": "command",
+          "name": "pdftotext",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:194",
+          "notes": "Used for command-line text extraction, including layout and page-range variants."
+        },
+        {
+          "type": "command",
+          "name": "qpdf",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:206",
+          "notes": "Used for command-line merging, splitting, rotation, encryption, decryption, optimization, and repair workflows."
+        },
+        {
+          "type": "command",
+          "name": "pdftk",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:219",
+          "notes": "Explicitly presented as an if-available alternative for merge, split, and rotation operations."
+        },
+        {
+          "type": "command",
+          "name": "pdfimages",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:274",
+          "notes": "Used when extracting embedded images through poppler-utils."
+        },
+        {
+          "type": "command",
+          "name": "pdftoppm",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "reference.md:280",
+          "notes": "Used for advanced command-line rendering of PDF pages to PNG or JPEG images."
+        },
+        {
+          "type": "command",
+          "name": "magick",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "forms.md:195",
+          "notes": "Primary ImageMagick command for zoomed crops during visual form-coordinate refinement."
+        },
+        {
+          "type": "command",
+          "name": "convert",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "forms.md:207",
+          "notes": "Alternative ImageMagick command when magick is unavailable."
+        },
+        {
+          "type": "package",
+          "name": "pypdf",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/check_fillable_fields.py:2",
+          "notes": "Required by fillable-field inspection and filling scripts and by Python workflows for PDF manipulation."
+        },
+        {
+          "type": "package",
+          "name": "pdf2image",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_pdf_to_images.py:4",
+          "notes": "Required by the bundled PDF-to-image script and the documented OCR workflow."
+        },
+        {
+          "type": "package",
+          "name": "pdfplumber",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/extract_form_structure.py:17",
+          "notes": "Required for non-fillable form-structure extraction and documented text/table extraction workflows."
+        },
+        {
+          "type": "package",
+          "name": "pillow",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/create_validation_image.py:4",
+          "notes": "Provides the PIL modules used for validation-image drawing and is also used in rendering examples."
+        },
+        {
+          "type": "package",
+          "name": "pandas",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:104",
+          "notes": "Required when converting extracted tables into data frames and spreadsheet output."
+        },
+        {
+          "type": "package",
+          "name": "reportlab",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:125",
+          "notes": "Required for Python workflows that create PDFs and formatted reports."
+        },
+        {
+          "type": "package",
+          "name": "pytesseract",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:236",
+          "notes": "Required for the documented OCR path for scanned PDFs."
+        },
+        {
+          "type": "package",
+          "name": "pypdfium2",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference.md:12",
+          "notes": "Required for the advanced Python PDFium rendering and text-extraction workflows."
+        },
+        {
+          "type": "package",
+          "name": "numpy",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference.md:440",
+          "notes": "Required by the advanced rendered-image array-processing example."
+        },
+        {
+          "type": "package",
+          "name": "pdf-lib",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference.md:54",
+          "notes": "Required for the supported JavaScript PDF creation, manipulation, merge, split, and form workflows."
+        },
+        {
+          "type": "package",
+          "name": "pdfjs-dist",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference.md:176",
+          "notes": "Required for the JavaScript PDF.js rendering, text extraction, annotation, and form-inspection workflows."
+        }
+      ],
+      "notes": "No environment variables, fixed external files/directories, or operating-system constraints are declared. Input/output PDFs, generated JSON/images, invocation-time directories, and bundled Skill files are excluded. Native executables commonly used transitively by pytesseract or pdf2image are not inferred because the Skill does not explicitly expose them as prerequisites.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-pptx",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:19",
+          "notes": "Required for the bundled thumbnail, slide-editing, cleanup, validation, and LibreOffice-wrapper workflows."
+        },
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:13",
+          "notes": "Required when creating a new presentation with pptxgenjs."
+        },
+        {
+          "type": "command",
+          "name": "markitdown",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:15",
+          "notes": "Required for presentation text extraction and content QA."
+        },
+        {
+          "type": "command",
+          "name": "zip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:62",
+          "notes": "Required by the documented manual unpack-edit-repack workflow."
+        },
+        {
+          "type": "command",
+          "name": "soffice",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:46",
+          "notes": "Required for legacy PowerPoint conversion, PDF rendering, thumbnails, and visual QA."
+        },
+        {
+          "type": "command",
+          "name": "pdftoppm",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/thumbnail.py:202",
+          "notes": "Required to rasterize presentation PDFs for thumbnails and visual inspection."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:31",
+          "notes": "Required only when a needed Node package is unavailable and must be installed."
+        },
+        {
+          "type": "command",
+          "name": "gcc",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:69",
+          "notes": "Required only when AF_UNIX sockets are blocked and the LibreOffice wrapper must compile its preload shim."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "operating-system",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:33",
+          "notes": "The sandbox socket workaround depends on Linux-style LD_PRELOAD behavior; ordinary LibreOffice execution does not require this path.",
+          "required": "linux"
+        },
+        {
+          "type": "package",
+          "name": "pptxgenjs",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:31",
+          "notes": "Node library required for the supported new-deck creation workflow."
+        },
+        {
+          "type": "package",
+          "name": "markitdown[pptx]",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:238",
+          "notes": "Python package providing PPTX text extraction through the markitdown command."
+        },
+        {
+          "type": "package",
+          "name": "pillow",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/thumbnail.py:30",
+          "notes": "Python imaging library required by the thumbnail-grid workflow."
+        },
+        {
+          "type": "package",
+          "name": "defusedxml",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/thumbnail.py:26",
+          "notes": "Python XML library required by thumbnailing, cleanup, validation, and the recommended safe XML-transform workflow."
+        },
+        {
+          "type": "package",
+          "name": "lxml",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/office/validators/base.py:11",
+          "notes": "Python XML/XSD library required for presentation validation."
+        },
+        {
+          "type": "package",
+          "name": "python-pptx",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:68",
+          "notes": "Required only when using the documented python-pptx alternative for presentation manipulation."
+        },
+        {
+          "type": "package",
+          "name": "react-icons",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:50",
+          "notes": "Used only to enhance generated slides with rendered icons."
+        },
+        {
+          "type": "package",
+          "name": "react",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:50",
+          "notes": "Used only by the optional React icon-rendering workflow."
+        },
+        {
+          "type": "package",
+          "name": "react-dom",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:50",
+          "notes": "Provides server-side SVG markup rendering for the optional icon workflow."
+        },
+        {
+          "type": "package",
+          "name": "sharp",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:50",
+          "notes": "Rasterizes SVG icons for the optional icon workflow."
+        }
+      ],
+      "notes": "No externally supplied environment variables or fixed external files/directories are required. Bundled schemas and other Skill files are excluded as directed; ordinary shell builtins and POSIX/coreutils are also excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-xlsx",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:37",
+          "notes": "Required for Python-based spreadsheet creation, editing, bulk processing, and formula recalculation workflows; the markitdown-only inspection path does not require it."
+        },
+        {
+          "type": "command",
+          "name": "soffice",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:99",
+          "notes": "LibreOffice CLI required when recalculating workbooks containing formulas."
+        },
+        {
+          "type": "command",
+          "name": "markitdown",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:13",
+          "notes": "Required only for the documented quick-look workflow."
+        },
+        {
+          "type": "command",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:16",
+          "notes": "Required only to recover from a missing Python package or markitdown installation."
+        },
+        {
+          "type": "command",
+          "name": "gcc",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/office/soffice.py:69",
+          "notes": "Required only when AF_UNIX sockets are blocked and the LibreOffice helper must compile its preload shim."
+        },
+        {
+          "type": "command",
+          "name": "timeout",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/recalc.py:184",
+          "notes": "On Linux, provides an additional process-level timeout around soffice; Python's subprocess timeout remains available without it."
+        },
+        {
+          "type": "command",
+          "name": "gtimeout",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/recalc.py:186",
+          "notes": "On macOS, provides an additional process-level timeout around soffice when installed; Python's subprocess timeout remains available without it."
+        },
+        {
+          "type": "package",
+          "name": "openpyxl",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:11",
+          "notes": "Python library required for the documented workbook creation/editing workflow and used by the recalculation validator."
+        },
+        {
+          "type": "package",
+          "name": "pandas",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:12",
+          "notes": "Python library required only for documented bulk spreadsheet data import/export workflows."
+        },
+        {
+          "type": "package",
+          "name": "markitdown",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:16",
+          "notes": "Installable language package providing the markitdown quick-look command."
+        }
+      ],
+      "notes": "Static review only; no target code was executed or imported. Bundled scripts and schemas, task-specific spreadsheet paths, generated temporary profiles/shims, internally assigned environment variables, standard-library modules, shell builtins, and ordinary core utilities are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-web-artifacts",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/init-artifact.sh:11",
+          "notes": "The initialization workflow explicitly requires Node.js 18 or newer; Node also hosts the installed frontend tools."
+        },
+        {
+          "type": "command",
+          "name": "pnpm",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/init-artifact.sh:59",
+          "notes": "Project creation, dependency installation, development, and bundling all invoke pnpm."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/init-artifact.sh:36",
+          "notes": "Needed only to bootstrap pnpm when pnpm is not already installed."
+        },
+        {
+          "type": "package",
+          "name": "create-vite",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:59",
+          "notes": "Fetched through pnpm for the project-initialization operation."
+        },
+        {
+          "type": "package",
+          "name": "vite",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:74",
+          "notes": "Build tooling for initialized projects; version 5.4.11 is pinned on Node 18."
+        },
+        {
+          "type": "package",
+          "name": "react",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:16",
+          "notes": "Application library in the generated frontend stack."
+        },
+        {
+          "type": "package",
+          "name": "typescript",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:16",
+          "notes": "Language package used by the generated React project."
+        },
+        {
+          "type": "package",
+          "name": "tailwindcss",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:78",
+          "notes": "Installed for styling initialized artifacts."
+        },
+        {
+          "type": "package",
+          "name": "postcss",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:78",
+          "notes": "Processes the generated Tailwind CSS configuration."
+        },
+        {
+          "type": "package",
+          "name": "autoprefixer",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:78",
+          "notes": "PostCSS plugin installed for initialized artifacts."
+        },
+        {
+          "type": "package",
+          "name": "@types/node",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:78",
+          "notes": "Provides Node typings to the generated TypeScript tooling."
+        },
+        {
+          "type": "package",
+          "name": "tailwindcss-animate",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:78",
+          "notes": "Referenced by the generated Tailwind configuration."
+        },
+        {
+          "type": "package",
+          "name": "class-variance-authority",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:79",
+          "notes": "Installed to support generated shadcn/ui component styling."
+        },
+        {
+          "type": "package",
+          "name": "clsx",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:79",
+          "notes": "Installed to support conditional class composition in generated components."
+        },
+        {
+          "type": "package",
+          "name": "tailwind-merge",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:79",
+          "notes": "Installed to merge Tailwind classes in generated components."
+        },
+        {
+          "type": "package",
+          "name": "lucide-react",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:79",
+          "notes": "Icon library used by applicable generated UI components."
+        },
+        {
+          "type": "package",
+          "name": "next-themes",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:79",
+          "notes": "Theme support for artifacts that use the generated theming facilities."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-accordion",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled accordion component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-aspect-ratio",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled aspect-ratio component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-avatar",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled avatar component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-checkbox",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled checkbox component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-collapsible",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled collapsible component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-context-menu",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled context-menu component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-dialog",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using bundled dialog-derived components."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-dropdown-menu",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled dropdown-menu component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-hover-card",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled hover-card component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-label",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled label or related form components."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-menubar",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled menubar component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-navigation-menu",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled navigation-menu component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-popover",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using bundled popover-based components."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-progress",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled progress component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-radio-group",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled radio-group component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-scroll-area",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled scroll-area component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-select",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled select component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-separator",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled separator component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-slider",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled slider component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-slot",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed by applicable polymorphic shadcn/ui components."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-switch",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled switch component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-tabs",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled tabs component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-toast",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled toast component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-toggle",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled toggle component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-toggle-group",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled toggle-group component."
+        },
+        {
+          "type": "package",
+          "name": "@radix-ui/react-tooltip",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:272",
+          "notes": "Needed when using the bundled tooltip component."
+        },
+        {
+          "type": "package",
+          "name": "sonner",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled Sonner notification component."
+        },
+        {
+          "type": "package",
+          "name": "cmdk",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled command component."
+        },
+        {
+          "type": "package",
+          "name": "vaul",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled drawer component."
+        },
+        {
+          "type": "package",
+          "name": "embla-carousel-react",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled carousel component."
+        },
+        {
+          "type": "package",
+          "name": "react-day-picker",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled calendar component."
+        },
+        {
+          "type": "package",
+          "name": "react-resizable-panels",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled resizable-panels component."
+        },
+        {
+          "type": "package",
+          "name": "date-fns",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed by artifact features and components that perform date formatting."
+        },
+        {
+          "type": "package",
+          "name": "react-hook-form",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when using the bundled form workflow."
+        },
+        {
+          "type": "package",
+          "name": "@hookform/resolvers",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed when connecting validation schemas to bundled forms."
+        },
+        {
+          "type": "package",
+          "name": "zod",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/init-artifact.sh:273",
+          "notes": "Needed for schema validation in applicable form workflows."
+        },
+        {
+          "type": "package",
+          "name": "parcel",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/bundle-artifact.sh:21",
+          "notes": "Needed for the single-HTML bundling operation."
+        },
+        {
+          "type": "package",
+          "name": "@parcel/config-default",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/bundle-artifact.sh:21",
+          "notes": "Parcel configuration installed for the bundling operation."
+        },
+        {
+          "type": "package",
+          "name": "parcel-resolver-tspaths",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/bundle-artifact.sh:21",
+          "notes": "Resolves TypeScript path aliases during bundling."
+        },
+        {
+          "type": "package",
+          "name": "html-inline",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/bundle-artifact.sh:21",
+          "notes": "Needed to inline the Parcel output into one HTML file."
+        }
+      ],
+      "notes": "No fixed external files or directories are annotated: index.html and package.json are invocation-time project files, while shadcn-components.tar.gz is bundled with the Skill. POSIX/coreutils utilities and shell builtins are excluded. The scripts explicitly handle macOS versus other sed implementations and state no narrower operating-system constraint.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "runtime",
+          "name": "node"
+        },
+        {
+          "type": "command",
+          "name": "pnpm"
+        }
+      ]
+    },
+    {
+      "id": "anthropic-webapp-testing",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:9",
+          "notes": "All supported testing workflows are implemented as native Python Playwright scripts."
+        },
+        {
+          "type": "package",
+          "name": "playwright",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:54",
+          "notes": "The Python automation scripts import and use Playwright's synchronous API."
+        },
+        {
+          "type": "package",
+          "name": "chromium",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:57",
+          "notes": "The documented workflow explicitly requires launching Chromium as the browser engine."
+        }
+      ],
+      "notes": "No required environment variables, fixed external files or directories, non-baseline third-party CLI commands, or operating-system constraints are declared. Server commands such as npm are invocation-time user inputs and are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-mcp-builder",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "reference/node_mcp_server.md:544",
+          "notes": "Required for the supported Node/TypeScript server workflow; the guide specifies Node.js >=18."
+        },
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:144",
+          "notes": "Required for the supported Python implementation and evaluation workflows."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:140",
+          "notes": "Required when building and validating the TypeScript workflow."
+        },
+        {
+          "type": "command",
+          "name": "npx",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:141",
+          "notes": "Required only when testing a server with MCP Inspector through the documented command."
+        },
+        {
+          "type": "command",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "reference/evaluation.md:387",
+          "notes": "Required for the documented evaluation-harness dependency installation workflow."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "ANTHROPIC_API_KEY",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "reference/evaluation.md:398",
+          "notes": "Required when running the provided Anthropic-backed evaluation harness."
+        },
+        {
+          "type": "package",
+          "name": "anthropic",
+          "necessity": "CONDITIONAL",
+          "source": "MANIFEST",
+          "inScope": false,
+          "evidence": "scripts/requirements.txt:1",
+          "notes": "Python library required by the evaluation harness to invoke Claude."
+        },
+        {
+          "type": "package",
+          "name": "mcp",
+          "necessity": "CONDITIONAL",
+          "source": "MANIFEST",
+          "inScope": false,
+          "evidence": "scripts/requirements.txt:2",
+          "notes": "Python MCP SDK required by the evaluation harness and Python MCP workflow."
+        },
+        {
+          "type": "package",
+          "name": "pydantic",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/python_mcp_server.md:346",
+          "notes": "Required by the documented Python workflow for input and output models."
+        },
+        {
+          "type": "package",
+          "name": "httpx",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/python_mcp_server.md:345",
+          "notes": "Required by the documented Python example when integrating an HTTP API."
+        },
+        {
+          "type": "package",
+          "name": "@modelcontextprotocol/sdk",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:547",
+          "notes": "Required by the supported Node/TypeScript MCP server workflow."
+        },
+        {
+          "type": "package",
+          "name": "zod",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:549",
+          "notes": "Required by the TypeScript workflow for runtime schema validation."
+        },
+        {
+          "type": "package",
+          "name": "axios",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:548",
+          "notes": "Required by the documented TypeScript example when integrating an HTTP API."
+        },
+        {
+          "type": "package",
+          "name": "express",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:16",
+          "notes": "Required for the documented TypeScript Streamable HTTP server path."
+        },
+        {
+          "type": "package",
+          "name": "typescript",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:554",
+          "notes": "Required to compile the supported TypeScript server workflow."
+        },
+        {
+          "type": "package",
+          "name": "@types/node",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:552",
+          "notes": "Required for Node.js type definitions in the documented TypeScript build."
+        },
+        {
+          "type": "package",
+          "name": "tsx",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "reference/node_mcp_server.md:553",
+          "notes": "Used only by the documented TypeScript watch-mode development enhancement."
+        }
+      ],
+      "notes": "No fixed external files or directories, operating-system constraints, or universally required dependencies were identified. Bundled Skill files and invocation-time evaluation/server paths are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "anthropic-skill-creator",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:229",
+          "notes": "Required for benchmark aggregation, review generation, packaging, validation, and description-optimization script workflows; drafting or editing a skill manually does not require it."
+        },
+        {
+          "type": "command",
+          "name": "claude",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:432",
+          "notes": "Required only for the description-optimization workflow, which invokes `claude -p`; that workflow is skipped where the CLI is unavailable."
+        },
+        {
+          "type": "command",
+          "name": "lsof",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "eval-viewer/generate_review.py:292",
+          "notes": "Used to terminate an existing listener before starting the review server; the script catches its absence and can bind another available port."
+        },
+        {
+          "type": "package",
+          "name": "pyyaml",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/quick_validate.py:9",
+          "notes": "Python library required by skill validation and, through that validator, packaging; unrelated workflows do not import it."
+        },
+        {
+          "type": "package",
+          "name": "sheetjs",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "eval-viewer/viewer.html:10",
+          "notes": "Browser-side library loaded from a CDN to render XLSX outputs inline; other review content remains usable without spreadsheet rendering."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "operating-system",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:369",
+          "notes": "The interactive trigger-eval review instructions use the macOS `open` command; headless and inline-review alternatives do not require macOS.",
+          "required": "macos"
+        }
+      ],
+      "notes": "No required environment variables or fixed external files/directories were identified. `CLAUDECODE` is explicitly removed from subprocess environments rather than required. Bundled templates and reference files, workspace/eval inputs and outputs, invocation-time paths, shell builtins, and ordinary POSIX/coreutils commands were excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-openai-docs",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:21",
+          "notes": "Required only for workflows that run the latest-model resolver or Codex manual helper scripts."
+        },
+        {
+          "type": "command",
+          "name": "curl",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:48",
+          "notes": "Used as the manual-fetch transport when proxy variables are configured or native fetch is unavailable, and as a fallback after native-fetch failure."
+        },
+        {
+          "type": "command",
+          "name": "codex",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:110",
+          "notes": "Required only for the documented recovery workflow that installs the OpenAI developer-docs MCP server when it is missing."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "LATEST_MODEL_URL",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/resolve-latest-model-info.js:12",
+          "notes": "Optional override for the latest-model metadata source; the resolver has a built-in official URL."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "LATEST_MODEL_BASE_URL",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/resolve-latest-model-info.js:13",
+          "notes": "Optional override used to resolve relative guide links; the resolver has a built-in official base URL."
+        },
+        {
+          "type": "directory",
+          "name": "/private/tmp/openai-docs-cache",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/fetch-codex-manual.mjs:279",
+          "notes": "Fixed non-Windows fallback cache directory, used only if earlier environment-derived candidates are unavailable and no explicit cache directory is passed."
+        }
+      ],
+      "notes": "No third-party language packages are required; both scripts use only Node.js built-in modules. No operating system is mandatory because the helper explicitly supports Windows and non-Windows cache and curl variants. MCP tools and remote URLs are workflow services or content sources, not dependency categories covered by this review.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-security-ownership-map",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:14",
+          "notes": "Python 3 is explicitly required to run the Skill's scripts."
+        },
+        {
+          "type": "command",
+          "name": "git",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/build_ownership_map.py:344",
+          "notes": "Required when building an ownership map from repository history or when community-maintainer analysis must read history because commits.jsonl is unavailable; output-only queries do not need it."
+        },
+        {
+          "type": "command",
+          "name": "cypher-shell",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/neo4j-import.md:8",
+          "notes": "One supported way to run the Cypher needed for Neo4j persistence; Neo4j Browser is an alternative."
+        },
+        {
+          "type": "package",
+          "name": "networkx",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:15",
+          "notes": "Python library required by the one-shot runner and for community detection or GraphML generation; direct output queries and a direct build with communities and GraphML disabled do not require it."
+        }
+      ],
+      "notes": "No environment variables, fixed external files/directories, or operating-system constraints are declared. Invocation-time repositories, sensitivity CSVs, generated output directories, Neo4j's installation-specific import directory, and bundled Skill files are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-gh-fix-ci",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "command",
+          "name": "gh",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:14",
+          "notes": "All supported inspection paths use the GitHub CLI, which must be authenticated for the repository host."
+        },
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:24",
+          "notes": "Required when using the preferred bundled inspection script; the documented manual fallback does not require it."
+        },
+        {
+          "type": "command",
+          "name": "git",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/inspect_pr_checks.py:140",
+          "notes": "Required by the bundled inspection script to resolve the target repository root; the manual gh-based fallback does not invoke it."
+        }
+      ],
+      "notes": "No third-party language packages, environment variables, fixed external files or directories, or operating-system constraints are explicitly required.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "command",
+          "name": "gh"
+        }
+      ]
+    },
+    {
+      "id": "openai-jupyter-notebook",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:45",
+          "notes": "The bundled scaffolding workflow runs the helper with Python 3.12; workflows that only edit notebook JSON without the helper do not necessarily require it."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:45",
+          "notes": "The documented scaffolding command uses uv to select and run Python 3.12; it is needed when following that command path."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "JUPYTER_NOTEBOOK_CLI",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:31",
+          "notes": "The documented scaffold commands reference this variable as the helper-script location."
+        },
+        {
+          "type": "package",
+          "name": "jupyterlab",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:95",
+          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it."
+        },
+        {
+          "type": "package",
+          "name": "ipykernel",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:95",
+          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it."
+        }
+      ],
+      "notes": "No operating-system constraint or fixed external file/directory dependency is specified. Bundled templates, references, and the helper script are excluded as bundled Skill files; the helper explicitly uses only the Python standard library.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-vercel-deploy",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "command",
+          "name": "vercel",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:26",
+          "notes": "Required only for the authenticated Vercel CLI deployment path; the bundled no-auth script provides an alternative."
+        },
+        {
+          "type": "command",
+          "name": "curl",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/deploy.sh:239",
+          "notes": "Required by the fallback script to upload the deployment package and subsequently poll deployment status."
+        }
+      ],
+      "notes": "No external environment variables, fixed external files/directories, operating-system constraints, or language packages are explicitly required. Baseline shell and POSIX/core utilities used by the fallback script are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-gh-address-comments",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/fetch_comments.py:1",
+          "notes": "The required comment-fetching script uses the Python 3 interpreter."
+        },
+        {
+          "type": "command",
+          "name": "gh",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:10",
+          "notes": "Every supported workflow uses GitHub CLI commands to locate the current pull request and retrieve its comments."
+        }
+      ],
+      "notes": "No third-party Python packages, environment variables, fixed external paths, or operating-system constraints are explicitly required. Git and GitHub network access are not annotated because the Skill does not expose git as a directly invoked prerequisite and network access is outside the requested requirement types.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "command",
+          "name": "gh"
+        }
+      ]
+    },
+    {
+      "id": "openai-screenshot",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "operatingSystem",
+          "name": "operating-system",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:51",
+          "notes": "Required for the macOS screenshot, app/window, display, and permission-preflight workflows.",
+          "required": "macos,linux,windows"
+        },
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:56",
+          "notes": "Runs the bundled screenshot helper on macOS and Linux."
+        },
+        {
+          "type": "runtime",
+          "name": "swift",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/take_screenshot.py:203",
+          "notes": "Runs the bundled macOS permission, window-information, and display-information helpers."
+        },
+        {
+          "type": "runtime",
+          "name": "powershell",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:153",
+          "notes": "Runs the Windows screenshot helper."
+        },
+        {
+          "type": "command",
+          "name": "screencapture",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/take_screenshot.py:354",
+          "notes": "Performs screenshot capture on macOS."
+        },
+        {
+          "type": "command",
+          "name": "scrot",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:137",
+          "notes": "First-choice Linux capture backend and one of the supported alternatives."
+        },
+        {
+          "type": "command",
+          "name": "gnome-screenshot",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:138",
+          "notes": "Alternative Linux backend for full-screen or active-window capture."
+        },
+        {
+          "type": "command",
+          "name": "import",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:139",
+          "notes": "ImageMagick capture backend; supports Linux full-screen, region, and window-ID operations."
+        },
+        {
+          "type": "command",
+          "name": "xdotool",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/take_screenshot.py:399",
+          "notes": "Needed only when active-window capture uses ImageMagick import rather than scrot or gnome-screenshot."
+        },
+        {
+          "type": "command",
+          "name": "osascript",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/take_screenshot.py:247",
+          "notes": "Attempts to activate a named macOS application before locating its windows; failure is explicitly tolerated."
+        },
+        {
+          "type": "command",
+          "name": "defaults",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/take_screenshot.py:111",
+          "notes": "Reads the configured macOS screenshot directory; the helper falls back to Desktop if unavailable."
+        },
+        {
+          "type": "package",
+          "name": "AppKit",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/macos_window_info.swift:1",
+          "notes": "macOS framework used for frontmost-application and window discovery; also used by the display helper."
+        },
+        {
+          "type": "package",
+          "name": "CoreGraphics",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/macos_permissions.swift:1",
+          "notes": "macOS framework used for screen-recording permission checks and window metadata."
+        },
+        {
+          "type": "package",
+          "name": "Foundation",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/macos_permissions.swift:2",
+          "notes": "macOS Swift framework used by the bundled helpers for JSON encoding and process support."
+        },
+        {
+          "type": "package",
+          "name": "System.Windows.Forms",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/take_screenshot.ps1:98",
+          "notes": "Windows .NET assembly used to determine virtual-screen bounds."
+        },
+        {
+          "type": "package",
+          "name": "System.Drawing",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/take_screenshot.ps1:99",
+          "notes": "Windows .NET assembly used to capture, encode, and save screenshot bitmaps."
+        }
+      ],
+      "notes": "Linux capture requires at least one supported backend, but no individual backend is universally required because scrot, gnome-screenshot, and ImageMagick import are alternatives with operation-specific coverage. Bundled scripts/assets, task-selected output paths, default output directories, standard-library modules, test-only environment variables, and CODEX_SANDBOX/TMPDIR checks are not external workflow requirements.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "openai-playwright",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:20",
+          "notes": "All supported CLI paths use the Node.js-based @playwright/cli; the Skill explicitly directs installation of Node.js when unavailable."
+        },
+        {
+          "type": "command",
+          "name": "npx",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/playwright_cli.sh:19",
+          "notes": "Required by the bundled wrapper path; a global playwright-cli installation is the supported alternative."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:59",
+          "notes": "Needed only for the documented global installation workflow."
+        },
+        {
+          "type": "command",
+          "name": "playwright-cli",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:60",
+          "notes": "A directly available command is required only for the global-install path; the wrapper resolves it through npx."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "PLAYWRIGHT_CLI_SESSION",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/playwright_cli.sh:20",
+          "notes": "Optionally supplies a named session when no --session argument is present."
+        },
+        {
+          "type": "file",
+          "name": "playwright-cli.json",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/workflows.md:74",
+          "notes": "Optional fixed-name configuration file read from the current directory; basic workflows work without it."
+        },
+        {
+          "type": "package",
+          "name": "@playwright/cli",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/playwright_cli.sh:19",
+          "notes": "The Skill's browser automation is implemented by this Node.js package, obtained through npx or installed globally."
+        }
+      ],
+      "notes": "PWCLI and CODEX_HOME are excluded because they establish invocation-time paths to bundled Skill files. The output/playwright directory and uploaded files are task outputs/inputs, so they are also excluded. No explicit operating-system constraint or additional non-transitive browser dependency is declared.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "runtime",
+          "name": "node"
+        }
+      ]
+    },
+    {
+      "id": "openai-speech",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "references/cli.md:44",
+          "notes": "Every supported CLI operation runs the bundled Python script."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:35",
+          "notes": "Preferred dependency-management and isolated live-execution path; an active Python environment is the documented alternative."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "OPENAI_API_KEY",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:47",
+          "notes": "Required for live Audio API calls, but not for dry runs or listing voices."
+        },
+        {
+          "type": "package",
+          "name": "openai",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:66",
+          "notes": "The OpenAI Python SDK is required for live API calls; non-live CLI paths do not import it."
+        },
+        {
+          "type": "package",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:43",
+          "notes": "Python package installer used only by the documented fallback installation path when uv is unavailable."
+        }
+      ],
+      "notes": "No fixed external files or directories or operating-system constraints are required. Network access is necessary for live API calls but is outside the requested requirement types. CODEX_HOME, TTS_GEN, input/output paths, and tmp/output directories are invocation-time paths or generated workflow artifacts and are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "environmentVariable",
+          "name": "OPENAI_API_KEY"
+        }
+      ]
+    },
+    {
+      "id": "openai-transcribe",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:56",
+          "notes": "Every documented CLI workflow invokes the bundled transcription script with python3."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:29",
+          "notes": "Preferred dependency installer; its absence only requires using the documented pip fallback."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "OPENAI_API_KEY",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/transcribe_diarize.py:40",
+          "notes": "Required for live transcription calls but explicitly unnecessary for dry-run validation."
+        },
+        {
+          "type": "package",
+          "name": "openai",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/transcribe_diarize.py:128",
+          "notes": "Python SDK imported when creating the API client; dry-run exits before this import."
+        },
+        {
+          "type": "package",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:36",
+          "notes": "Python package installer needed only for the documented dependency-installation fallback when uv is unavailable."
+        }
+      ],
+      "notes": "No fixed external files or directories, operating-system constraints, or additional non-baseline commands are required. Audio, speaker-reference, and output paths are invocation-time task inputs or outputs; CODEX_HOME and TRANSCRIBE_CLI are convenience variables for locating bundled Skill files and are therefore excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "environmentVariable",
+          "name": "OPENAI_API_KEY"
+        }
+      ]
+    },
+    {
+      "id": "plugin-hf-llm-trainer",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/train_sft_example.py:3",
+          "notes": "All supported training, inspection, estimation, and conversion scripts are Python; bundled scripts require Python 3.10 or newer."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:62",
+          "notes": "Required when running PEP 723 scripts locally or through the documented UV workflow."
+        },
+        {
+          "type": "command",
+          "name": "uvx",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:332",
+          "notes": "Required only for the terminal-based trl-jobs workflow."
+        },
+        {
+          "type": "command",
+          "name": "hf",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:286",
+          "notes": "Required for the direct Hugging Face Jobs CLI fallback and CLI-based Hub operations."
+        },
+        {
+          "type": "command",
+          "name": "git",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/convert_to_gguf.py:174",
+          "notes": "Required by the GGUF conversion workflow to clone llama.cpp."
+        },
+        {
+          "type": "command",
+          "name": "cmake",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/convert_to_gguf.py:232",
+          "notes": "Required to configure and build llama-quantize during GGUF conversion."
+        },
+        {
+          "type": "command",
+          "name": "gcc",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/gguf_conversion.md:35",
+          "notes": "A C/C++ compiler is required to build llama.cpp's quantization tool."
+        },
+        {
+          "type": "command",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/convert_to_gguf.py:188",
+          "notes": "The supplied GGUF conversion script invokes pip to install llama.cpp requirements."
+        },
+        {
+          "type": "command",
+          "name": "apt-get",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/gguf_conversion.md:31",
+          "notes": "Used to install GGUF build prerequisites on Ubuntu or Debian runners."
+        },
+        {
+          "type": "command",
+          "name": "yum",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/convert_to_gguf.py:28",
+          "notes": "Documented alternative for installing GGUF build prerequisites on RHEL or CentOS."
+        },
+        {
+          "type": "command",
+          "name": "xcode-select",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/local_training_macos.md:38",
+          "notes": "Required to install Apple command-line developer tools for the local macOS workflow."
+        },
+        {
+          "type": "command",
+          "name": "brew",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/convert_to_gguf.py:29",
+          "notes": "Documented macOS installation path for the CMake prerequisite."
+        },
+        {
+          "type": "command",
+          "name": "accelerate",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/local_training_macos.md:51",
+          "notes": "Used only for the optional local macOS Accelerate configuration step."
+        },
+        {
+          "type": "command",
+          "name": "ollama",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/gguf_conversion.md:175",
+          "notes": "Required only when deploying and running a converted GGUF model through Ollama."
+        },
+        {
+          "type": "command",
+          "name": "llama-cli",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/gguf_conversion.md:182",
+          "notes": "Required only for the documented llama.cpp local-inference path."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "HF_TOKEN",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:75",
+          "notes": "Required for workflows that push trained models, checkpoints, metrics, or converted artifacts to the Hugging Face Hub."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "hfjob",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/unsloth_sft_example.py:266",
+          "notes": "Accepted by the Unsloth script as an alternative injected Hub authentication token."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "PYTORCH_ENABLE_MPS_FALLBACK",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/local_training_macos.md:155",
+          "notes": "Optionally permits unsupported MPS operations to fall back to CPU during local Mac training."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "PYTORCH_MPS_HIGH_WATERMARK_RATIO",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/local_training_macos.md:156",
+          "notes": "Optional MPS memory-limit override for local Mac troubleshooting."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "macos on apple silicon",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "references/local_training_macos.md:1",
+          "notes": "The supported local MPS training workflow is specifically scoped to Apple Silicon macOS."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "unix-like operating system",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:160",
+          "notes": "The supplied GGUF conversion workflow relies on Unix-style /tmp paths and documents Linux/macOS prerequisite installation paths."
+        },
+        {
+          "type": "package",
+          "name": "trl",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:5",
+          "notes": "Required by the supported SFT, DPO, GRPO, reward-modeling, and Unsloth training workflows."
+        },
+        {
+          "type": "package",
+          "name": "peft",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:6",
+          "notes": "Required for LoRA-based SFT, local Mac training, adapter loading, and GGUF adapter merging."
+        },
+        {
+          "type": "package",
+          "name": "transformers",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:7",
+          "notes": "Required for model and tokenizer handling in training and conversion workflows."
+        },
+        {
+          "type": "package",
+          "name": "accelerate",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:8",
+          "notes": "Declared execution dependency for the standard training examples and GGUF conversion."
+        },
+        {
+          "type": "package",
+          "name": "trackio",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:9",
+          "notes": "Required for the mandated monitoring integration in supported training jobs."
+        },
+        {
+          "type": "package",
+          "name": "datasets",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/train_sft_example.py:36",
+          "notes": "Required to load and prepare Hub datasets for the training workflows."
+        },
+        {
+          "type": "package",
+          "name": "torch",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:7",
+          "notes": "Required for model execution, local MPS training, Unsloth CUDA checks, and GGUF model merging."
+        },
+        {
+          "type": "package",
+          "name": "unsloth",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/unsloth_sft_example.py:4",
+          "notes": "Required only for the memory-optimized Unsloth training path."
+        },
+        {
+          "type": "package",
+          "name": "huggingface-hub",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:9",
+          "notes": "Required for Hub authentication and uploading converted or trained artifacts."
+        },
+        {
+          "type": "package",
+          "name": "hf-transfer",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/unsloth_sft_example.py:7",
+          "notes": "Selected through the huggingface_hub hf_transfer extra by the Unsloth workflow."
+        },
+        {
+          "type": "package",
+          "name": "tensorboard",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/unsloth_sft_example.py:9",
+          "notes": "Required by the Unsloth example's configured TensorBoard reporting backend."
+        },
+        {
+          "type": "package",
+          "name": "sentencepiece",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:10",
+          "notes": "Required for tokenizer handling in the GGUF conversion workflow."
+        },
+        {
+          "type": "package",
+          "name": "protobuf",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:11",
+          "notes": "Required for tokenizer conversion in the GGUF workflow."
+        },
+        {
+          "type": "package",
+          "name": "numpy",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:12",
+          "notes": "Explicitly declared by the GGUF conversion script."
+        },
+        {
+          "type": "package",
+          "name": "gguf",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/convert_to_gguf.py:13",
+          "notes": "Required only for creating GGUF artifacts."
+        },
+        {
+          "type": "package",
+          "name": "safetensors",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "references/local_training_macos.md:41",
+          "notes": "Explicit installation prerequisite for the local macOS training workflow."
+        },
+        {
+          "type": "package",
+          "name": "trl-jobs",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:329",
+          "notes": "Required only for the simplified terminal-based training alternative invoked through uvx."
+        }
+      ],
+      "notes": "No fixed external files or directories qualify: model and dataset paths are task inputs, while /tmp/llama.cpp and related paths are runtime-generated intermediates. Configuration variables such as MODEL_ID, DATA_FILES, ADAPTER_MODEL, and OUTPUT_REPO were excluded as invocation-time inputs.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "plugin-hf-jobs",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/cot-self-instruct.py:2",
+          "notes": "Python >=3.10 is required for the CoT self-instruct and response-generation script workflows."
+        },
+        {
+          "type": "command",
+          "name": "hf",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:297",
+          "notes": "Required only when using the documented Hugging Face CLI execution and job-management paths; MCP and Python API alternatives exist."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/cot-self-instruct.py:26",
+          "notes": "Required when executing the bundled PEP 723 scripts directly with uv; remote MCP and other execution paths do not require a local uv command."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "HF_TOKEN",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:53",
+          "notes": "Required for authenticated Hub operations such as private-repository access and pushing datasets, models, or artifacts."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "WEBHOOK_PAYLOAD",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:836",
+          "notes": "Provided to and consumed by scripts in the webhook-triggered job workflow."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "HF_XET_HIGH_PERFORMANCE",
+          "necessity": "OPTIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/finepdfs-stats.py:347",
+          "notes": "Enables an optional high-performance transfer mode for the FinePDFs workflow."
+        },
+        {
+          "type": "package",
+          "name": "huggingface-hub",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/finepdfs-stats.py:5",
+          "notes": "Needed by Python API workflows and bundled scripts that authenticate, inspect repositories, submit jobs, or push results."
+        },
+        {
+          "type": "package",
+          "name": "datasets",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:4",
+          "notes": "Needed by bundled dataset-loading, generation, statistics, and Hub-push workflows."
+        },
+        {
+          "type": "package",
+          "name": "transformers",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:5",
+          "notes": "Needed by the bundled GPU generation workflows for tokenizer and chat-template handling."
+        },
+        {
+          "type": "package",
+          "name": "vllm",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:6",
+          "notes": "vLLM >=0.6.5 is declared for CoT generation; the response-generation script declares >=0.8.5."
+        },
+        {
+          "type": "package",
+          "name": "torch",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:8",
+          "notes": "Needed by bundled GPU inference and generation workflows."
+        },
+        {
+          "type": "package",
+          "name": "numpy",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:9",
+          "notes": "Needed by the CoT self-instruct workflow."
+        },
+        {
+          "type": "package",
+          "name": "tqdm",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:10",
+          "notes": "Needed for progress reporting in the bundled generation workflows."
+        },
+        {
+          "type": "package",
+          "name": "scikit-learn",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/cot-self-instruct.py:11",
+          "notes": "Needed by the CoT self-instruct script's clustering-based processing."
+        },
+        {
+          "type": "package",
+          "name": "polars",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/finepdfs-stats.py:4",
+          "notes": "Polars >=1.31.0 is required for the streaming FinePDFs statistics workflow."
+        },
+        {
+          "type": "package",
+          "name": "ascii-graph",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/finepdfs-stats.py:7",
+          "notes": "Needed for terminal graph rendering in the FinePDFs statistics script."
+        },
+        {
+          "type": "package",
+          "name": "flashinfer-python",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/generate-responses.py:5",
+          "notes": "Explicitly declared by the bundled response-generation workflow."
+        },
+        {
+          "type": "package",
+          "name": "hf-xet",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/generate-responses.py:7",
+          "notes": "hf-xet >=1.1.7 is explicitly declared by the bundled response-generation workflow."
+        },
+        {
+          "type": "package",
+          "name": "boto3",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:525",
+          "notes": "Needed only for the documented Amazon S3 external-storage persistence path."
+        },
+        {
+          "type": "package",
+          "name": "requests",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:534",
+          "notes": "Needed only for the documented HTTP API result-persistence path."
+        }
+      ],
+      "notes": "No fixed external files/directories or operating-system constraints are explicitly required. GPU/CUDA hardware requirements are not represented because they are outside the requested dependency categories. Bundled skill files, user-selected scripts, datasets, models, container images, and output repositories are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "plugin-hf-community-evals",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": true,
+          "evidence": "scripts/inspect_eval_uv.py:2",
+          "notes": "Every bundled evaluation runner requires Python 3.10 or newer."
+        },
+        {
+          "type": "command",
+          "name": "uv",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:41",
+          "notes": "All documented local execution workflows use uv to resolve script dependencies and launch the runners."
+        },
+        {
+          "type": "command",
+          "name": "inspect",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/inspect_eval_uv.py:72",
+          "notes": "Required when running either inspect-ai evaluation workflow."
+        },
+        {
+          "type": "command",
+          "name": "lighteval",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/lighteval_vllm_uv.py:73",
+          "notes": "Required when running the lighteval workflow with either backend."
+        },
+        {
+          "type": "command",
+          "name": "nvidia-smi",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:48",
+          "notes": "Used to verify local NVIDIA GPU access; provider-backed evaluation remains available without it."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "HF_TOKEN",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:42",
+          "notes": "Required only to access gated or private Hugging Face models."
+        },
+        {
+          "type": "package",
+          "name": "inspect-ai",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_eval_uv.py:4",
+          "notes": "Python package providing the inspect evaluation framework and CLI for inspect-based workflows."
+        },
+        {
+          "type": "package",
+          "name": "inspect-evals",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_eval_uv.py:5",
+          "notes": "Provides the predefined inspect tasks used by inspect-based workflows."
+        },
+        {
+          "type": "package",
+          "name": "openai",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_eval_uv.py:6",
+          "notes": "Declared for the inspect inference-provider workflow."
+        },
+        {
+          "type": "package",
+          "name": "vllm",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_vllm_uv.py:6",
+          "notes": "Required for local workflows selecting the vLLM backend."
+        },
+        {
+          "type": "package",
+          "name": "torch",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_vllm_uv.py:7",
+          "notes": "Declared for direct local model evaluation workflows."
+        },
+        {
+          "type": "package",
+          "name": "transformers",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/inspect_vllm_uv.py:8",
+          "notes": "Required by local Hugging Face model evaluation, including the inspect hf fallback."
+        },
+        {
+          "type": "package",
+          "name": "lighteval",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/lighteval_vllm_uv.py:4",
+          "notes": "Python package providing the lighteval framework and its accelerate and vLLM integrations."
+        },
+        {
+          "type": "package",
+          "name": "accelerate",
+          "necessity": "CONDITIONAL",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": false,
+          "evidence": "scripts/lighteval_vllm_uv.py:7",
+          "notes": "Required when selecting the lighteval accelerate fallback backend."
+        }
+      ],
+      "notes": "No fixed external files or directories or operating-system constraints are required by the supported local workflows. User-selected task roots and output directories are invocation-time inputs and are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "command",
+          "name": "uv"
+        }
+      ]
+    },
+    {
+      "id": "plugin-ncbi-blast",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:52",
+          "notes": "All supported BLAST actions run through the Python helper script."
+        },
+        {
+          "type": "package",
+          "name": "requests",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/ncbi_blast.py:704",
+          "notes": "The script rejects execution when the third-party HTTP library is unavailable."
+        },
+        {
+          "type": "package",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:53",
+          "notes": "Needed only for the documented installation workflow when requests is missing."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "NCBI_EMAIL",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:27",
+          "notes": "May supply the required email for submit and run actions when it is not included in the input object."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "NCBI_TOOL",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:31",
+          "notes": "Overrides the default tool identifier sent to NCBI; execution falls back to ncbi-blast-skill when absent."
+        }
+      ],
+      "notes": "No non-baseline third-party CLI command, fixed external file, or explicit operating-system constraint is required. Network access to the NCBI BLAST Common URL API is operationally necessary but is outside the requested requirement types.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "plugin-shopify-dev",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "REQUIRED",
+          "source": "COMPATIBILITY_METADATA",
+          "inScope": true,
+          "evidence": "SKILL.md:4 — compatibility explicitly states that Node.js is required.",
+          "notes": "Required to execute the documented search script."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "OPT_OUT_INSTRUMENTATION",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:33 — setting OPT_OUT_INSTRUMENTATION=true disables usage reporting.",
+          "notes": "Optional privacy control; search works without it."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "SHOPIFY_DEV_STAGING_SERVER_NUMBER",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/search_docs.mjs:14 — a configured staging server number selects the staging Shopify developer endpoint.",
+          "notes": "Used only for searches targeting a staging server."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "MINERVA_TOKEN",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/search_docs.mjs:27 — the script requires MINERVA_TOKEN when a staging server is selected.",
+          "notes": "Required only with SHOPIFY_DEV_STAGING_SERVER_NUMBER because staging is protected by Minerva."
+        },
+        {
+          "type": "command",
+          "name": "devx",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/search_docs.mjs:32 — the staging-token guidance invokes devx minerva-auth.",
+          "notes": "Needed only when following the documented command-based path to obtain a Minerva token; a preexisting token is an alternative."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "SHOPIFY_DEV_INSTRUMENTATION_URL",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/search_docs.mjs:40 — this variable overrides the endpoint for /mcp/usage requests.",
+          "notes": "Relevant only when instrumentation is enabled and its endpoint must be overridden."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "DEV",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/search_docs.mjs:44 — a truthy DEV value selects the development Shopify endpoint.",
+          "notes": "Used only for the development-endpoint workflow."
+        }
+      ],
+      "notes": "No third-party language packages, fixed external files or directories, or operating-system constraints are explicitly required. The imported util module and fetch API are Node.js platform facilities.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "runtime",
+          "name": "node"
+        }
+      ]
+    },
+    {
+      "id": "jayrha-pandas-cleaning",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/profile_data.py:1",
+          "notes": "Both bundled executables are Python scripts, and all documented cleaning examples use Python syntax."
+        },
+        {
+          "type": "package",
+          "name": "pandas",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/profile_data.py:13",
+          "notes": "Core library required for profiling and every supported data-cleaning workflow; nullable-dtype guidance specifically documents pandas >= 1.0."
+        },
+        {
+          "type": "package",
+          "name": "numpy",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": false,
+          "evidence": "scripts/clean_pipeline.py:18",
+          "notes": "Required by the bundled end-to-end cleaning pipeline and documented workflows that use NumPy operations, but not by the pandas-only profiling script."
+        }
+      ],
+      "notes": "No non-baseline third-party CLI commands, environment variables, fixed external files/directories, or operating-system constraints are declared. Excel and Parquet backend libraries are not annotated because the Skill does not explicitly expose them as prerequisites; inferring them from pandas I/O would be transitive dependency inference.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "jayrha-aws-cost",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:37",
+          "notes": "Required only when running the bundled cost-analysis workflow; advisory and reporting workflows can proceed without it."
+        },
+        {
+          "type": "command",
+          "name": "aws",
+          "necessity": "CONDITIONAL",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/cost_analysis.py:9",
+          "notes": "One explicitly supported alternative for exporting AWS inventory; inventories may instead come from Cost Explorer or Compute Optimizer."
+        }
+      ],
+      "notes": "Static review only; no target code was executed or imported. No required environment variables, fixed external files/directories, or operating-system constraints are declared. Invocation-time inventory paths are excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "jayrha-github-actions",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:35",
+          "notes": "Every produced workflow is explicitly required to be validated with the bundled Python validator."
+        },
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "templates/composite-action.yml:45",
+          "notes": "Required when using the supplied Node.js composite-action or Node CI patterns."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "templates/composite-action.yml:22",
+          "notes": "Required for the default dependency-install path in the Node.js composite-action template."
+        },
+        {
+          "type": "command",
+          "name": "yarn",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:13",
+          "notes": "Required only for generated workflows that select Yarn dependency caching and installation."
+        },
+        {
+          "type": "command",
+          "name": "pnpm",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:13",
+          "notes": "Required only for generated workflows that select pnpm dependency caching and installation."
+        },
+        {
+          "type": "command",
+          "name": "pip",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:21",
+          "notes": "Required only for generated Python workflows using pip."
+        },
+        {
+          "type": "command",
+          "name": "pipenv",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:21",
+          "notes": "Required only when the selected Python workflow uses Pipenv."
+        },
+        {
+          "type": "command",
+          "name": "poetry",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:21",
+          "notes": "Required only when the selected Python workflow uses Poetry."
+        },
+        {
+          "type": "runtime",
+          "name": "go",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": false,
+          "evidence": "references/caching-guide.md:27",
+          "notes": "Required on runners only for generated Go-project workflows."
+        },
+        {
+          "type": "runtime",
+          "name": "java",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:35",
+          "notes": "Required on runners only for generated Java-project workflows."
+        },
+        {
+          "type": "command",
+          "name": "gradle",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:36",
+          "notes": "Required only for generated Java workflows that select Gradle."
+        },
+        {
+          "type": "command",
+          "name": "maven",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:36",
+          "notes": "Required only for generated Java workflows that select Maven."
+        },
+        {
+          "type": "command",
+          "name": "sbt",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:36",
+          "notes": "Required only for generated JVM workflows that select sbt."
+        },
+        {
+          "type": "command",
+          "name": "docker",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/caching-guide.md:72",
+          "notes": "Required only for workflows using the documented Docker layer-build and caching path."
+        },
+        {
+          "type": "command",
+          "name": "aws",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/secrets-and-security.md:54",
+          "notes": "Required only for the documented AWS deployment operation after OIDC authentication."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "GITHUB_TOKEN",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:16",
+          "notes": "GitHub-provided token required by workflows that access repository or GitHub API resources; its availability and permissions vary by event."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "GITHUB_OUTPUT",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:89",
+          "notes": "GitHub-provided output file variable required only when a generated workflow passes step values through outputs."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "operating-system",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "examples/node-matrix-ci.md:44",
+          "notes": "Required when the generated matrix or jobs select an Ubuntu runner.",
+          "required": "linux,macos"
+        }
+      ],
+      "notes": "No third-party Python packages are required by the validator; it explicitly uses only the Python standard library. Project lockfiles, workflow output locations, deployment scripts, artifacts, credentials, and secret values are excluded as user task inputs/outputs or invocation-time paths.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "jayrha-dockerfile",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "python",
+          "necessity": "REQUIRED",
+          "source": "SCRIPT",
+          "inScope": true,
+          "evidence": "scripts/check_dockerfile.py:1",
+          "notes": "Required to run the bundled static Dockerfile auditor prescribed by the workflow; the script uses only the standard library."
+        },
+        {
+          "type": "command",
+          "name": "hadolint",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:90",
+          "notes": "The finishing workflow explicitly requires linting the resulting Dockerfile with hadolint."
+        },
+        {
+          "type": "command",
+          "name": "trivy",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:30",
+          "notes": "Used when Trivy is selected for the vulnerability-scanning operation; other scanners may satisfy that step."
+        },
+        {
+          "type": "command",
+          "name": "docker",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:165",
+          "notes": "Required for workflows that build, validate, inspect, or run container images through Docker and BuildKit."
+        },
+        {
+          "type": "command",
+          "name": "grype",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:127",
+          "notes": "Alternative vulnerability scanner used only when the Grype scanning path is selected."
+        },
+        {
+          "type": "command",
+          "name": "cosign",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:128",
+          "notes": "Required only for the optional supply-chain signing and attestation workflow."
+        },
+        {
+          "type": "command",
+          "name": "dive",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:87",
+          "notes": "Provides enhanced interactive image-layer size inspection; its absence does not prevent authoring, linting, building, or scanning."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "DOCKER_BUILDKIT",
+          "necessity": "CONDITIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:72",
+          "notes": "Must be set to 1 only on Docker installations where BuildKit is not already enabled by default."
+        },
+        {
+          "type": "environmentVariable",
+          "name": "SOURCE_DATE_EPOCH",
+          "necessity": "OPTIONAL",
+          "source": "REFERENCE",
+          "inScope": true,
+          "evidence": "references/best-practices.md:130",
+          "notes": "Used only to enhance builds with bit-for-bit timestamp reproducibility."
+        }
+      ],
+      "notes": "No third-party language packages, fixed external filesystem resources, or host operating-system constraints are required. Dockerfile inputs, application manifests, lockfiles, build artifacts, .dockerignore files, bundled skill resources, and commands embedded in language-specific example containers are excluded as task-specific inputs or generated-container dependencies.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "command",
+          "name": "hadolint"
+        }
+      ]
+    },
+    {
+      "id": "evilmartians-secure-npm",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "NOT_READY",
+      "dependencies": [
+        {
+          "type": "runtime",
+          "name": "node",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:117",
+          "notes": "The generated npm release workflow installs Node.js before running npm operations; its version is adapted to the project."
+        },
+        {
+          "type": "command",
+          "name": "npm",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:34",
+          "notes": "Every public package is queried with npm during mandatory fact gathering, and npm is the default publishing client."
+        },
+        {
+          "type": "command",
+          "name": "git",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:35",
+          "notes": "The mandatory repository inspection checks Git tags to determine the release tag format."
+        },
+        {
+          "type": "command",
+          "name": "gh",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:41",
+          "notes": "An authenticated GitHub CLI can verify repository rulesets; user confirmation remains available without it."
+        },
+        {
+          "type": "command",
+          "name": "docker",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:189",
+          "notes": "Docker runs zizmor locally when available; otherwise the user can run the supplied check and provide its output."
+        },
+        {
+          "type": "command",
+          "name": "pnpm",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:227",
+          "notes": "Required when configuring cooldown for a pnpm project or when pnpm-specific packaging features require pnpm publishing."
+        },
+        {
+          "type": "command",
+          "name": "yarn",
+          "necessity": "CONDITIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:228",
+          "notes": "Required when applying the dependency cooldown or script policy to a Yarn-managed project."
+        },
+        {
+          "type": "command",
+          "name": "npx",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": true,
+          "evidence": "SKILL.md:293",
+          "notes": "Used only for the suggested post-setup dependency-analysis enhancement."
+        },
+        {
+          "type": "operatingSystem",
+          "name": "ubuntu",
+          "necessity": "REQUIRED",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:109",
+          "notes": "The prescribed GitHub Actions release workflow runs its jobs on Ubuntu runners."
+        },
+        {
+          "type": "package",
+          "name": "@e18e/cli",
+          "necessity": "OPTIONAL",
+          "source": "SKILL_TEXT",
+          "inScope": false,
+          "evidence": "SKILL.md:293",
+          "notes": "This Node package supplies the optional dependency-analysis command suggested after the secure release setup."
+        }
+      ],
+      "notes": "No required environment variables are introduced: NPM_TOKEN is legacy state to remove, not a prerequisite. Repository manifests, lockfiles, configuration files, and workflow paths are user task inputs or generated outputs and are therefore excluded.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": [
+        {
+          "type": "runtime",
+          "name": "node"
+        },
+        {
+          "type": "command",
+          "name": "npm"
+        }
+      ]
+    },
+    {
+      "id": "profilespider-company-research",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [],
+      "notes": "No in-scope dependencies are declared or used. The Skill is instruction-only and requires no language runtime, third-party CLI command, environment variable, fixed external file or directory, operating-system constraint, or language package.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    },
+    {
+      "id": "profilespider-lead-analysis",
+      "reviewStatus": "AI_REVIEWED",
+      "actualReadiness": "WARNING",
+      "dependencies": [],
+      "notes": "No in-scope dependencies or explicitly required language packages are declared. The Skill defines a reasoning-only analysis workflow using user-supplied lead-list data and contains no scripts, manifests, external file references, environment variables, runtime requirements, third-party commands, or operating-system constraints.",
+      "review": {
+        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
+        "model": "gpt-5.6-sol",
+        "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
+        "humanSignoff": false
+      },
+      "blockingDependencies": []
+    }
   ]
 }

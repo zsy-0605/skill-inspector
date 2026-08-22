@@ -2,12 +2,13 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "title": "Agent Skill compatibility benchmark predictions",
   "type": "object",
-  "required": ["schemaVersion", "datasetVersion", "method", "model", "skills"],
+  "required": ["schemaVersion", "datasetVersion", "method", "model", "run", "environment", "skills"],
   "properties": {
-    "schemaVersion": {"const": "1.0"},
+    "schemaVersion": {"const": "1.1"},
     "datasetVersion": {"type": "string"},
     "method": {"enum": ["AGENT_ONLY", "JAVA_STATIC", "AGENT_WITH_INSPECTOR"]},
     "model": {"type": "string"},
+    "run": {"type": "integer", "minimum": 1},
     "environment": {"type": "string"},
     "skills": {
       "type": "array",
@@ -25,6 +26,7 @@
               "properties": {
                 "type": {"type": "string"}, "name": {"type": "string"},
                 "inScope": {"type": "boolean"}, "evidence": {"type": "string"},
+                "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
                 "source": {"enum": ["DECLARED", "INFERRED", "JAVA_REPORT"]},
                 "confidence": {"enum": ["CERTAIN", "HIGH", "MEDIUM", "LOW"]}
               }

@@ -15,6 +15,11 @@ User: “Can I run this Skill?”
        ├── discovers dependencies
        └── preserves evidence
                  │
+                 ▼
+       Structured requirements JSON
+       ├── source: DECLARED / INFERRED
+       └── necessity: REQUIRED / OPTIONAL / CONDITIONAL
+                 │
                  v
         Java deterministic checker
        ├── runtimes and versions
@@ -38,10 +43,11 @@ Readiness: WARNING
 ## Why a Skill and a Java program?
 
 ```text
-Target Skill ──> SKILL.md / Agent reasoning ──> dependency requirements
+Target Skill ──> Agent semantic extraction ──> requirements JSON
                                                     │
+                           Java static discovery ───┤
                                                     v
-                                      Java deterministic checks
+                                      deterministic verification
                                                     │
                                                     v
                                          compatibility report
@@ -78,6 +84,15 @@ Stable machine-readable report:
 java -jar target/skill-inspector.jar inspect ./examples/missing-env-skill --json
 ```
 
+Verify semantic requirements extracted from prose by an Agent:
+
+```bash
+java -jar target/skill-inspector.jar verify ./third-party-skill \
+  --requirements requirements.json --json
+```
+
+The handoff schema is [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json). `source` describes how a requirement was found; `necessity` independently records whether it is `REQUIRED`, `OPTIONAL`, or `CONDITIONAL`. A missing required semantic dependency can therefore block readiness without being misrepresented as a declaration.
+
 Exit codes are `0` for READY/WARNING, `2` for compatibility FAIL, and `1` for invalid input or an inspection error. Callers must also inspect `status`/`readiness`; WARNING is not proof of readiness.
 
 Declare compatibility in a target Skill's existing frontmatter:
@@ -105,36 +120,23 @@ The extension is optional, human-readable, and safe for runtimes that ignore unk
 
 JUnit covers deterministic checkers and parsing. The Eval runner builds the project and exercises cross-platform synthetic cases for READY, WARNING, missing command/env/file, impossible runtime, OS mismatch, inferred dependency provenance, and the no-execution invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
 
-### Real-world pilot benchmark
+### Controlled real-world benchmark
 
-V0.1.1 adds a reproducible manifest of 30 unmodified public Agent Skills pinned across six GitHub repositories:
+V0.1.1 evaluates 30 unmodified public Agent Skills pinned across six GitHub repositories. The controlled experiment locks the model (`gpt-5.6-sol`), prompts, target commits, environment, and three runs per Skill for both conditions: 180 model trials total.
 
 ```bash
-python3 scripts/run-real-benchmark.py
+python3 scripts/run-controlled-benchmark.py \
+  --runs 3 --java /absolute/path/to/jdk-21/bin/java
 ```
 
-The first raw run found:
+| Method | Dependency recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | False ready |
+|---|---:|---:|---:|---:|---:|---:|
+| Agent only | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 21.4% |
+| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **1.2%** |
 
-```text
-Skills inspected:          30
-Declared dependencies:      0
-Dependencies inferred:    28
-Skills with no checks:      5
-Missing commands:           2
-Missing runtimes:           3
-```
+The hybrid method also reduced false blocks from 50.0% to 33.3%, but did not eliminate them. These are pooled pilot results against AI-assisted reviewed annotations; **human signoff is still pending**, so they are evidence, not a final ecosystem-wide claim. Within this benchmark and Skill Inspector's machine-readable dependency definition, none of the 30 pinned Skills declared a structured runtime contract in the supported schema.
 
-This is useful evidence that compatibility metadata is uncommon in the selected snapshot, but it is **not an accuracy claim**. These counts describe the Java static layer, not the complete Agent + Skill workflow. Recall, precision, false-ready, and false-block remain `NOT_COMPUTED` until reviewed ground truth exists.
-
-A manual spot-check already demonstrates the intended responsibility boundary:
-
-| Real Skill | Semantic evidence in SKILL.md | Java static result | Meaning |
-|---|---|---:|---|
-| OpenAI `vercel-deploy` | Vercel CLI prerequisite | 0 checks | Agent must extract prose requirements |
-| OpenAI `playwright` | `npx` and Node/npm prerequisite | 0 checks | Agent semantics complements Java verification |
-| Anthropic `pdf` | Python scripts plus PDF libraries and `pdftotext` guidance | Python detected | Packages/prose remain visible but outside Java V0.1 |
-
-See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), and [raw pilot report](benchmark/results/pilot-2026-08-21.md).
+See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), and [full comparison](benchmark/results/controlled-2026-08-21.md).
 
 ## V0.1 scope
 
@@ -147,6 +149,7 @@ Supported:
 - Windows, Linux, and macOS declarations
 - YAML frontmatter parsing and conservative high-confidence inference from script extensions, shebangs, and simple shell command positions
 - Explainable inference with evidence location, matched text, rule, confidence, redaction, and symbolic-link exclusion
+- Structured Agent-to-Java semantic handoff with independent source and necessity dimensions
 - DECLARED/INFERRED provenance, READY/WARNING/NOT READY, transparent scores, human and JSON output
 
 Not supported:
@@ -159,13 +162,13 @@ Not supported:
 
 ## Design notes
 
-The package structure separates `parse`, `model`, `check`, `core`, `report`, and `cli`. Checkers share a small `EnvironmentProbe` boundary, keeping OS/process access replaceable in unit tests without a dependency-injection framework. The score is explanatory rather than authoritative: any declared required failure always produces NOT READY.
+The package structure separates `parse`, `model`, `check`, `core`, `report`, and `cli`. Checkers share a small `EnvironmentProbe` boundary, keeping OS/process access replaceable in unit tests without a dependency-injection framework. The score is explanatory rather than authoritative: any `REQUIRED` failure produces NOT READY, while optional and conditional failures remain warnings.
 
 ## Roadmap
 
 - **V0.1:** Local compatibility inspection — complete.
-- **V0.1.1:** Real-world Skill Benchmark — 30 pinned samples and raw runner complete; independent ground-truth review pending.
-- **V0.2:** Structured Agent-to-Java semantic dependency handoff.
+- **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and AI-assisted ground truth — implemented; independent human signoff pending.
+- **V0.2:** Richer semantic contracts and package/capability verification.
 - **V0.3:** MCP and Agent Tool runtime adapters.
 - **V0.4:** Skill-to-Skill dependencies.
 

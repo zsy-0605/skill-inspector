@@ -1,6 +1,7 @@
 import importlib.util
 import json
 from pathlib import Path
+import tempfile
 import unittest
 
 
@@ -18,6 +19,7 @@ def load_script(name: str):
 
 runner = load_script("run-real-benchmark.py")
 scorer = load_script("score-benchmark.py")
+controlled = load_script("run-controlled-benchmark.py")
 
 
 class BenchmarkRunnerTest(unittest.TestCase):
@@ -46,20 +48,56 @@ class BenchmarkRunnerTest(unittest.TestCase):
 
     def test_scoring_counts_dependency_and_readiness_errors(self):
         truth = {"datasetVersion": "v1", "skills": [{
-            "id": "sample", "reviewStatus": "REVIEWED", "actualReadiness": "NOT_READY",
-            "dependencies": [{"type": "command", "name": "git", "inScope": True, "evidence": "SKILL.md:1"}]
+            "id": "sample", "reviewStatus": "AI_REVIEWED", "actualReadiness": "NOT_READY",
+            "blockingDependencies": [{"type": "command", "name": "git"}],
+            "dependencies": [{"type": "command", "name": "git", "necessity": "REQUIRED", "inScope": True, "evidence": "SKILL.md:1"}]
         }]}
-        prediction = {"datasetVersion": "v1", "method": "AGENT_ONLY", "model": "test", "skills": [{
+        prediction = {"datasetVersion": "v1", "method": "AGENT_ONLY", "model": "test", "run": 1, "skills": [{
             "id": "sample", "readiness": "READY", "dependencies": [
                 {"type": "command", "name": "git", "inScope": True, "evidence": "SKILL.md:1"},
                 {"type": "command", "name": "curl", "inScope": True, "evidence": "SKILL.md:2"}
             ]
         }]}
-        result = scorer.score(truth, prediction)
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
         self.assertEqual("100.0%", result["recall"])
         self.assertEqual("50.0%", result["precision"])
         self.assertEqual("100.0%", result["falseReady"])
         self.assertEqual("100.0%", result["coverage"])
+        self.assertEqual("100.0%", result["diagnosisCompleteness"])
+
+    def test_ground_truth_keeps_source_necessity_and_human_signoff_separate(self):
+        truth = json.loads((PROJECT / "benchmark/annotations/ground-truth.json").read_text(encoding="utf-8"))
+        self.assertEqual(30, len(truth["skills"]))
+        self.assertTrue(all(skill["reviewStatus"] == "AI_REVIEWED" for skill in truth["skills"]))
+        self.assertTrue(all(skill["review"]["humanSignoff"] is False for skill in truth["skills"]))
+        dependencies = [item for skill in truth["skills"] for item in skill["dependencies"]]
+        self.assertTrue(all(item["necessity"] in {"REQUIRED", "OPTIONAL", "CONDITIONAL"} for item in dependencies))
+        self.assertTrue(all(item["source"] in {"COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"} for item in dependencies))
+
+    def test_controlled_environment_does_not_forward_dependency_secrets(self):
+        old = __import__("os").environ.get("OPENAI_API_KEY")
+        __import__("os").environ["OPENAI_API_KEY"] = "must-not-be-forwarded"
+        try:
+            environment = controlled.controlled_environment()
+            self.assertNotIn("OPENAI_API_KEY", environment)
+            self.assertEqual("/usr/bin:/bin", environment["PATH"])
+        finally:
+            if old is None:
+                __import__("os").environ.pop("OPENAI_API_KEY", None)
+            else:
+                __import__("os").environ["OPENAI_API_KEY"] = old
+
+    def test_resume_rejects_outputs_from_different_conditions(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "SKILL.md").write_text("---\nname: sample\n---\n", encoding="utf-8")
+            output = root / "sample.json"
+            output.write_text("{}\n", encoding="utf-8")
+            output.with_suffix(".meta.json").write_text("{}\n", encoding="utf-8")
+            with self.assertRaisesRegex(RuntimeError, "mismatched output"):
+                controlled.run_codex("unused", "model-a", root,
+                                     PROJECT / "benchmark/semantic-extraction.schema.json",
+                                     "fixed prompt", output, root / "sample.log", 1, True)
 
 
 if __name__ == "__main__":

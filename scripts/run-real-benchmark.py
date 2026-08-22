@@ -17,6 +17,7 @@ from typing import Any
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 GITHUB_RE = re.compile(r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$")
 ACCEPTED_INSPECTOR_EXITS = {0, 2}
+REVIEWED_STATUSES = {"AI_REVIEWED", "HUMAN_REVIEWED"}
 
 
 def run(command: list[str], cwd: Path | None = None, env: dict[str, str] | None = None,
@@ -103,7 +104,7 @@ def calculate_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
     }
     for item in results:
         report = item.get("report", {})
-        readiness = report.get("readiness", "ERROR")
+        readiness = str(report.get("readiness", "ERROR")).replace(" ", "_")
         summary[readiness if readiness in ("READY", "WARNING", "NOT_READY") else "ERROR"] += 1
         if not report.get("checks"):
             summary["skillsWithNoChecks"] += 1
@@ -119,7 +120,7 @@ def calculate_summary(results: list[dict[str, Any]]) -> dict[str, Any]:
 
 
 def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]) -> dict[str, Any]:
-    labels = {item["id"]: item for item in annotations.get("skills", []) if item.get("reviewStatus") == "REVIEWED"}
+    labels = {item["id"]: item for item in annotations.get("skills", []) if item.get("reviewStatus") in REVIEWED_STATUSES}
     by_id = {item["id"]: item for item in results}
     true_positive = false_positive = false_negative = 0
     false_ready = false_block = ready_actual = not_ready_actual = 0
@@ -131,12 +132,12 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
         true_positive += len(actual & predicted)
         false_positive += len(predicted - actual)
         false_negative += len(actual - predicted)
-        actual_readiness = label.get("actualReadiness")
-        predicted_readiness = by_id[skill_id]["report"].get("readiness")
+        actual_readiness = str(label.get("actualReadiness", "")).replace(" ", "_")
+        predicted_readiness = str(by_id[skill_id]["report"].get("readiness", "")).replace(" ", "_")
         if actual_readiness == "READY":
             ready_actual += 1
-            false_block += int(predicted_readiness == "NOT READY")
-        elif actual_readiness == "NOT_READY":
+            false_block += int(predicted_readiness == "NOT_READY")
+        elif actual_readiness in {"NOT_READY", "WARNING"}:
             not_ready_actual += 1
             false_ready += int(predicted_readiness == "READY")
     if not labels:

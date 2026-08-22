@@ -17,7 +17,7 @@ public final class HumanReportRenderer {
                 out.append(symbol(check.status())).append(" ").append(check.name());
                 if (!check.required().equals("present")) out.append(" ").append(check.required());
                 out.append("\n  Actual: ").append(check.actual()).append("\n  Status: ").append(check.status())
-                        .append(" | Source: ").append(check.source());
+                        .append(" | Source: ").append(check.source()).append(" | Necessity: ").append(check.necessity());
                 if (check.confidence() != null) out.append(" | Confidence: ").append(check.confidence());
                 if (check.evidence() != null) out.append("\n  Evidence: ").append(check.evidence());
                 if (check.matched() != null) out.append("\n  Matched: ").append(check.matched());

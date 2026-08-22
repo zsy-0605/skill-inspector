@@ -6,5 +6,7 @@
 /benchmark/results/latest.json
 /benchmark/results/latest.md
 /benchmark/results/*.json
+/benchmark/results/raw/
+/benchmark/annotations/drafts/
 __pycache__/
 *.pyc

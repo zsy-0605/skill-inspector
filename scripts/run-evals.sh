@@ -38,6 +38,16 @@ assert_case "optional dependency" 0 '"readiness" : "WARNING"' "$project_dir/exam
 assert_case "inferred dependency" 0 '"source" : "INFERRED"' "$project_dir/examples/inferred-dependency-skill"
 assert_case "static only" 0 '"skill" : "must-not-execute-skill"' "$project_dir/examples/must-not-execute-skill"
 
+cases=$((cases + 1))
+semantic_output=$(java -jar "$jar" verify "$project_dir/examples/semantic-handoff-skill" \
+  --requirements "$project_dir/examples/semantic-handoff-skill/requirements.json" --json 2>&1)
+semantic_exit=$?
+if [[ $semantic_exit -eq 2 && "$semantic_output" == *'"necessity" : "REQUIRED"'* && "$semantic_output" == *'"source" : "INFERRED"'* ]]; then
+  passed=$((passed + 1))
+else
+  failures+=("semantic handoff (exit=$semantic_exit; expected required inferred blocker)")
+fi
+
 marker="$project_dir/examples/must-not-execute-skill/SHOULD_NOT_EXIST"
 cases=$((cases + 1))
 if [[ ! -e "$marker" ]]; then passed=$((passed + 1)); else failures+=("target script was executed"); fi

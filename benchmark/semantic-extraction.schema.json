@@ -1,0 +1,28 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "requirements"],
+  "properties": {
+    "schemaVersion": {"type": "string", "const": "1.0"},
+    "requirements": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["type", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
+        "properties": {
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem"]},
+          "name": {"type": "string"},
+          "required": {"type": ["string", "null"]},
+          "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+          "source": {"type": "string", "const": "INFERRED"},
+          "confidence": {"type": "string", "enum": ["HIGH", "MEDIUM", "LOW"]},
+          "evidence": {"type": "string"},
+          "matched": {"type": ["string", "null"]},
+          "inferenceRule": {"type": "string"}
+        }
+      }
+    }
+  }
+}

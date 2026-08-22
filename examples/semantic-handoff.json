@@ -1,0 +1,26 @@
+{
+  "schemaVersion": "1.0",
+  "requirements": [
+    {
+      "type": "command",
+      "name": "vercel",
+      "necessity": "REQUIRED",
+      "source": "INFERRED",
+      "confidence": "HIGH",
+      "evidence": "SKILL.md:18",
+      "matched": "Requires the Vercel CLI.",
+      "inferenceRule": "agent-semantic-extraction"
+    },
+    {
+      "type": "runtime",
+      "name": "node",
+      "required": "*",
+      "necessity": "REQUIRED",
+      "source": "INFERRED",
+      "confidence": "HIGH",
+      "evidence": "SKILL.md:19",
+      "matched": "Install the CLI with npm.",
+      "inferenceRule": "agent-semantic-extraction"
+    }
+  ]
+}

@@ -1,9 +1,9 @@
 # Agent + Skill Inspector benchmark prompt
 
-Use `$skill-inspector` to inspect the Agent Skill at `{{TARGET_SKILL}}` against the described environment.
+Statically inspect the Agent Skill in the current directory and extract semantic requirements for deterministic verification by Skill Inspector.
 
-Follow its read-only workflow. Read `SKILL.md` and relevant static evidence, then use the deterministic Java report. Never execute target code, import its modules, install dependencies, or modify the target. Keep Java findings and additional Agent semantic findings distinguishable.
+Never execute target code, import its modules, install dependencies, or modify the target. The benchmark runner—not the model—will pass your structured result to Java and preserve the resulting evidence.
 
-Identify requirements in this evaluation scope only: runtime, command, environmentVariable, file, directory, and operatingSystem. Preserve relative file-and-line evidence and the Java check source when available. Package/library requirements may be included with `inScope: false`.
+Use the same external-dependency scope and exclusions as `semantic-extraction.md`. Keep necessity separate from source, canonicalize names, and preserve exact relative file:line evidence.
 
-Return only JSON conforming to `benchmark/predictions.schema.json`. Use method `AGENT_WITH_INSPECTOR`. WARNING and UNKNOWN are not proof of readiness.
+Return only JSON conforming to `benchmark/semantic-extraction.schema.json`. Do not inspect the local environment yourself; Java performs that deterministic step.
