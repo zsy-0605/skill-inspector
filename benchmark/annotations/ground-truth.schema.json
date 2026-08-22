@@ -16,14 +16,15 @@
         "required": ["id", "reviewStatus", "actualReadiness", "blockingDependencies", "dependencies", "review"],
         "properties": {
           "id": {"type": "string"},
-          "reviewStatus": {"enum": ["PENDING", "AI_DRAFT", "AI_REVIEWED", "HUMAN_REVIEWED"]},
+          "reviewStatus": {"enum": ["PENDING", "DRAFT", "EVIDENCE_REVIEWED", "HUMAN_REVIEWED"]},
           "actualReadiness": {"enum": ["READY", "WARNING", "NOT_READY", "UNVERIFIABLE", null]},
           "blockingDependencies": {
             "type": "array",
             "items": {
               "type": "object",
               "required": ["type", "name"],
-              "properties": {"type": {"type": "string"}, "name": {"type": "string"}}
+              "properties": {"type": {"type": "string"}, "ecosystem": {"enum": ["python", "npm", "maven"]}, "name": {"type": "string"}},
+              "allOf": [{"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem"]}}]
             }
           },
           "dependencies": {
@@ -33,20 +34,23 @@
               "required": ["type", "name", "necessity", "source", "inScope", "evidence"],
               "properties": {
                 "type": {"type": "string"},
+                "ecosystem": {"enum": ["python", "npm", "maven"]},
                 "name": {"type": "string"},
                 "required": {"type": "string"},
+                "version": {"type": "string"},
                 "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
                 "source": {"enum": ["COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"]},
                 "inScope": {"type": "boolean"},
                 "evidence": {"type": "string"},
                 "notes": {"type": "string"}
-              }
+              },
+              "allOf": [{"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem", "version"]}}]
             }
           },
           "notes": {"type": "string"},
           "review": {
             "type": "object",
-            "required": ["method", "model", "reviewedAt", "humanSignoff"],
+            "required": ["method", "reviewedAt", "humanSignoff"],
             "properties": {
               "method": {"type": "string"},
               "model": {"type": "string"},

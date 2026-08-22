@@ -7,7 +7,7 @@ import java.util.Optional;
 public final class RuntimeChecker implements RequirementChecker {
     private final VersionMatcher versions = new VersionMatcher();
     @Override public boolean supports(RequirementType type) { return type == RequirementType.RUNTIME; }
-    @Override public CheckResult check(SkillRequirement r, Path root, EnvironmentProbe env) {
+    @Override public CheckResult check(Requirement r, Path root, EnvironmentProbe env) {
         Optional<String> actual = env.runtimeVersion(r.name());
         if (actual.isEmpty()) return result(r, CheckStatus.FAIL, "NOT FOUND", "Runtime `" + r.name() + "` was not found.");
         try {

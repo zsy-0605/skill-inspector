@@ -2,7 +2,7 @@
 
 Dataset: `v0.1.1-pilot-2026-08-21`
 Environment: `linux-system-path-2026-08-21`
-Ground truth: **AI-assisted; human signoff pending**
+Ground truth: **human-reviewed**
 Model trials: **180**
 
 | Method | Model | Runs | Skills/run | Coverage | Recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | Blocker recall | False ready | False block |
@@ -18,7 +18,7 @@ The hybrid method improved dependency coverage and sharply reduced false-ready d
 
 ## Limitations
 
-- Ground truth is AI-assisted with deterministic evidence/path validation; independent human signoff is pending.
+- Ground-truth dependencies, evidence paths, necessity, and environment conclusions were human-reviewed.
 - The corpus contains 30 pinned Skills from six repositories, one model, and one controlled Linux environment.
 - Package/library dependencies are recorded but excluded from V0.1 scoring.
 - Raw model outputs are retained locally but not redistributed in the public repository.

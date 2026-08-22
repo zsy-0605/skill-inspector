@@ -1,4 +1,4 @@
-# Compatibility metadata specification — V0.1
+# Compatibility metadata specification — V0.2
 
 ## Purpose
 
@@ -25,6 +25,17 @@ compatibility:
     - ./config.json
   directories:
     - ./scripts
+  packages:
+    - ecosystem: python
+      name: pdfplumber
+      version: ">=0.11"
+      necessity: required
+    - ecosystem: npm
+      name: playwright
+      version: "^1.50"
+    - ecosystem: maven
+      name: com.fasterxml.jackson.core:jackson-databind
+      version: "[2.18,3.0)"
 ---
 ```
 
@@ -39,8 +50,13 @@ compatibility:
 | `supportedOs` | list | Backward-compatible alias for `os` |
 | `files` | list | Relative/absolute path string or `{path, optional}` |
 | `directories` | list | Relative/absolute path string or `{path, optional}` |
+| `packages` | list | `{ecosystem, name, version?, necessity?}` for `python`, `npm`, or `maven` |
 
-Supported version constraints are `>`, `>=`, `<`, `<=`, `=`, exact versions, `*`, and one trailing wildcard such as `21.x`. `source` (`DECLARED` or `INFERRED`) describes provenance; `necessity` (`REQUIRED`, `OPTIONAL`, or `CONDITIONAL`) independently controls blocking behavior. Missing required dependencies are `FAIL`; missing optional or conditional dependencies are `WARNING`.
+Runtime constraints support `>`, `>=`, `<`, `<=`, `=`, exact versions, `*`, and one trailing wildcard such as `21.x`. Package constraints intentionally cover a conservative subset: Python comparison lists and compatible releases, common npm exact/comparison/wildcard/caret/tilde/range expressions, and exact or single-interval Maven versions. Unsupported expressions produce `UNKNOWN`; they are never guessed. `source` (`DECLARED` or `INFERRED`) describes provenance; `necessity` (`REQUIRED`, `OPTIONAL`, or `CONDITIONAL`) independently controls blocking behavior. Missing required dependencies are `FAIL`; missing optional or conditional dependencies are `WARNING`.
+
+Root-level `requirements.txt`, `pyproject.toml`, `package.json`, and `pom.xml` entries are parsed as declarations. npm `optionalDependencies` are optional; `peerDependencies` and `devDependencies` are conditional rather than required runtime dependencies. Maven `test`, `provided`, and `system` scopes are conditional, and `<optional>true</optional>` is optional.
+
+Package verification is local and read-only. Python checks distribution metadata under target/configured virtual environments and conventional local site-package roots; npm checks package manifests in the applicable local `node_modules` path; Maven checks artifacts already present in the configured or standard local repository. The inspector never imports a package, runs lifecycle scripts, invokes an installer, downloads an artifact, or queries a remote registry.
 
 ## Semantic handoff
 
@@ -51,11 +67,11 @@ java -jar target/skill-inspector.jar verify ./target-skill \
   --requirements requirements.json --json
 ```
 
-The input must conform to [`semantic-requirements.schema.json`](semantic-requirements.schema.json), is limited to 1 MiB and 1,000 entries, and must be a regular non-symbolic-link file. Semantic entries must use `source: INFERRED`, include evidence, confidence, and necessity, and may include bounded matched text. Java merges duplicate findings by preferring declarations and then stronger necessity/confidence.
+The input must conform to [`semantic-requirements.schema.json`](semantic-requirements.schema.json), is limited to 1 MiB and 1,000 entries, and must be a regular non-symbolic-link file. Semantic entries must use `source: INFERRED`, include evidence, confidence, and necessity, and may include bounded matched text. Package entries additionally require `ecosystem` and accept `version` (or the backward-compatible `required` alias). Evidence can use the legacy file string or `{file, matched, inferenceRule}`. Java merges duplicate findings by preferring declarations and then stronger necessity/confidence.
 
 ## Stable result contract
 
-JSON reports use `schemaVersion: "1.0"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type` (`runtime`, `command`, `environmentVariable`, `file`, `directory`, or `operatingSystem`), `name`, `required`, `actual`, `status`, `source`, `necessity`, optional `confidence`, `evidence`, `matched`, `inferenceRule`, and `message`. `matched` is limited to 240 characters and redacts likely token, secret, password, and API-key assignments. Additive fields may appear in compatible V0.1 releases; consumers must ignore unknown fields.
+JSON reports use `schemaVersion: "1.0"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type` (`runtime`, `command`, `environmentVariable`, `file`, `directory`, `operatingSystem`, or `package`), `name`, `required`, `actual`, `status`, `source`, `necessity`, optional `ecosystem`, `version`, `confidence`, `evidence`, `matched`, `inferenceRule`, and `message`. `matched` is limited to 240 characters and redacts likely token, secret, password, and API-key assignments. Additive fields may appear in compatible V0.2 releases; consumers must ignore unknown fields.
 
 Every inferred dependency must be explainable. `evidence` identifies the file and line when available, `matched` shows the bounded static text that triggered inference, and `inferenceRule` names the deterministic rule. Symbolic links under `scripts/` are never inspected.
 

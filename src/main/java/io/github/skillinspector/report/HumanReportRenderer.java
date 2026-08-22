@@ -15,6 +15,7 @@ public final class HumanReportRenderer {
             out.append("\n").append(title(type)).append("\n--------------------------------\n");
             checks.forEach(check -> {
                 out.append(symbol(check.status())).append(" ").append(check.name());
+                if (check.ecosystem() != null) out.append(" [").append(check.ecosystem().jsonValue()).append("]");
                 if (!check.required().equals("present")) out.append(" ").append(check.required());
                 out.append("\n  Actual: ").append(check.actual()).append("\n  Status: ").append(check.status())
                         .append(" | Source: ").append(check.source()).append(" | Necessity: ").append(check.necessity());
@@ -39,6 +40,7 @@ public final class HumanReportRenderer {
     private String title(RequirementType type) { return switch (type) {
         case RUNTIME -> "Runtimes"; case COMMAND -> "Commands"; case ENVIRONMENT_VARIABLE -> "Environment";
         case FILE -> "Files"; case DIRECTORY -> "Directories"; case OPERATING_SYSTEM -> "Operating System";
+        case PACKAGE -> "Packages";
     }; }
     private String symbol(CheckStatus status) { return switch (status) { case PASS -> "✓"; case FAIL -> "✗"; case WARNING -> "!"; case UNKNOWN -> "?"; }; }
 }

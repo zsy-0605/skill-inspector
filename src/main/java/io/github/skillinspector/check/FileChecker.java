@@ -5,7 +5,7 @@ import java.nio.file.Path;
 
 public final class FileChecker implements RequirementChecker {
     @Override public boolean supports(RequirementType type) { return type == RequirementType.FILE || type == RequirementType.DIRECTORY; }
-    @Override public CheckResult check(SkillRequirement r, Path root, EnvironmentProbe env) {
+    @Override public CheckResult check(Requirement r, Path root, EnvironmentProbe env) {
         Path declared = Path.of(r.name());
         Path resolved = declared.isAbsolute() ? declared.normalize() : root.resolve(declared).normalize();
         boolean exists = r.type() == RequirementType.FILE ? env.fileExists(resolved) : env.directoryExists(resolved);

@@ -22,7 +22,7 @@ def load(path: Path) -> dict[str, Any]:
 
 
 def controlled_environment() -> dict[str, str]:
-    return {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8"}
+    return {"PATH": "/usr/bin:/bin", "LANG": "C.UTF-8", "SKILL_INSPECTOR_PACKAGE_METADATA_MODE": "isolated"}
 
 
 def handoff(dependencies: list[dict[str, Any]]) -> dict[str, Any]:
@@ -32,11 +32,12 @@ def handoff(dependencies: list[dict[str, Any]]) -> dict[str, Any]:
             continue
         required = item.get("required")
         if not required:
-            required = "*" if item["type"] == "runtime" else "present"
-        requirements.append({"type": item["type"], "name": item["name"], "required": required,
+            required = "*" if item["type"] in {"runtime", "package"} else "present"
+        requirement = {"type": item["type"], "name": item["name"], "required": required,
                              "necessity": item["necessity"], "source": "INFERRED", "confidence": "HIGH",
-                             "evidence": item["evidence"], "matched": None,
-                             "inferenceRule": "reviewed-ground-truth"})
+                             "evidence": item["evidence"], "inferenceRule": "reviewed-ground-truth"}
+        if item["type"] == "package": requirement["ecosystem"] = item["ecosystem"]
+        requirements.append(requirement)
     return {"schemaVersion": "1.0", "requirements": requirements}
 
 
@@ -49,7 +50,7 @@ def main() -> int:
     parser.add_argument("--cache", type=Path, default=project / "benchmark/.cache")
     parser.add_argument("--jar", type=Path, default=project / "target/skill-inspector.jar")
     parser.add_argument("--java", required=True)
-    parser.add_argument("--promote-ai-reviewed", action="store_true")
+    parser.add_argument("--promote-evidence-reviewed", action="store_true")
     args = parser.parse_args()
     dataset, truth, environment = load(args.dataset), load(args.ground_truth), load(args.environment)
     if not Path(args.java).is_absolute() or not Path(args.java).is_file() or not args.jar.is_file():
@@ -82,11 +83,11 @@ def main() -> int:
                 raise RuntimeError(f"Inspector failed for {label['id']}: {result.stderr.strip() or result.stdout.strip()}")
             report = json.loads(result.stdout)
             label["actualReadiness"] = report["readiness"].replace(" ", "_")
-            label["blockingDependencies"] = [{"type": check["type"], "name": check["name"]}
+            label["blockingDependencies"] = [{key: check[key] for key in ("type", "ecosystem", "name") if key in check}
                                                for check in report.get("checks", []) if check["status"] == "FAIL"]
-            if args.promote_ai_reviewed:
-                label["reviewStatus"] = "AI_REVIEWED"
-                label["review"]["method"] = "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending"
+            if args.promote_evidence_reviewed:
+                label["reviewStatus"] = "EVIDENCE_REVIEWED"
+                label["review"]["method"] = "static review plus deterministic evidence and environment validation; human signoff pending"
             print(f"Finalized: {label['id']} -> {label['actualReadiness']}", file=sys.stderr)
 
     truth["environment"] = environment["id"]

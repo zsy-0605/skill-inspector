@@ -23,6 +23,8 @@ public final class SkillParser {
     private static final Pattern SIMPLE_COMMAND = Pattern.compile("^\\s*(?:sudo\\s+)?([A-Za-z][A-Za-z0-9._+-]*)\\s+(?:[^|;&]|$)");
     private static final Pattern SENSITIVE_LITERAL = Pattern.compile(
             "(?i)([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_KEY)[A-Z0-9_]*\\s*=\\s*)(\\\"[^\\\"]*\\\"|'[^']*'|[^\\s]+)");
+    private static final Pattern SENSITIVE_TOKEN = Pattern.compile(
+            "(?i)\\b(?:bearer\\s+)?(?:sk-|gh[opusr]_|xox[baprs]-)[A-Za-z0-9._-]{8,}");
     private static final int MAX_MATCHED_LENGTH = 240;
 
     public SkillDefinition parse(Path target) {
@@ -34,9 +36,10 @@ public final class SkillParser {
             String content = Files.readString(skillFile, StandardCharsets.UTF_8);
             Map<String, Object> frontmatter = parseFrontmatter(content);
             String name = stringValue(frontmatter.getOrDefault("name", root.getFileName().toString()));
-            List<SkillRequirement> requirements = new ArrayList<>();
+            List<Requirement> requirements = new ArrayList<>();
             parseCompatibility(frontmatter.get("compatibility"), requirements);
             inferFromScripts(root, requirements);
+            requirements.addAll(new PackageManifestParser().parse(root));
             return new SkillDefinition(name, root, deduplicate(requirements));
         } catch (IOException | ClassCastException e) {
             throw new SkillParseException("Cannot parse " + skillFile + ": " + e.getMessage(), e);
@@ -57,13 +60,14 @@ public final class SkillParser {
     }
 
     @SuppressWarnings("unchecked")
-    private void parseCompatibility(Object raw, List<SkillRequirement> out) {
+    private void parseCompatibility(Object raw, List<Requirement> out) {
         if (!(raw instanceof Map<?, ?> compatibility)) return;
         parseRuntimes(compatibility.get("runtimes"), out);
         parseList(compatibility.get("commands"), RequirementType.COMMAND, out);
         parseList(compatibility.get("env"), RequirementType.ENVIRONMENT_VARIABLE, out);
         parseList(compatibility.get("files"), RequirementType.FILE, out);
         parseList(compatibility.get("directories"), RequirementType.DIRECTORY, out);
+        parsePackages(compatibility.get("packages"), out);
         Object os = compatibility.get("os");
         if (os == null) os = compatibility.get("supportedOs");
         if (os instanceof Collection<?> values) {
@@ -72,7 +76,29 @@ public final class SkillParser {
         }
     }
 
-    private void parseRuntimes(Object raw, List<SkillRequirement> out) {
+    private void parsePackages(Object raw, List<Requirement> out) {
+        if (!(raw instanceof Collection<?> values)) return;
+        for (Object value : values) {
+            if (!(value instanceof Map<?, ?> map))
+                throw new SkillParseException("package entries require ecosystem and name");
+            Object ecosystem = map.get("ecosystem");
+            Object name = map.get("name");
+            if (ecosystem == null || name == null)
+                throw new SkillParseException("package entries require ecosystem and name");
+            String version = stringValue(map.containsKey("version") ? map.get("version")
+                    : map.containsKey("required") ? map.get("required") : "*").strip();
+            RequirementNecessity necessity;
+            if (map.containsKey("necessity")) {
+                try { necessity = RequirementNecessity.valueOf(stringValue(map.get("necessity")).toUpperCase(Locale.ROOT)); }
+                catch (IllegalArgumentException error) { throw new SkillParseException("Invalid package necessity: " + map.get("necessity")); }
+            } else necessity = Boolean.parseBoolean(stringValue(map.containsKey("optional") ? map.get("optional") : false))
+                    ? RequirementNecessity.OPTIONAL : RequirementNecessity.REQUIRED;
+            out.add(PackageRequirement.declared(PackageEcosystem.fromJson(stringValue(ecosystem)), stringValue(name),
+                    version.isEmpty() ? "*" : version, necessity, "SKILL.md frontmatter"));
+        }
+    }
+
+    private void parseRuntimes(Object raw, List<Requirement> out) {
         if (!(raw instanceof Map<?, ?> map)) return;
         map.forEach((key, value) -> {
             if (value instanceof Map<?, ?> details) {
@@ -83,7 +109,7 @@ public final class SkillParser {
         });
     }
 
-    private void parseList(Object raw, RequirementType type, List<SkillRequirement> out) {
+    private void parseList(Object raw, RequirementType type, List<Requirement> out) {
         if (!(raw instanceof Collection<?> values)) return;
         for (Object value : values) {
             if (value instanceof Map<?, ?> map) {
@@ -95,7 +121,7 @@ public final class SkillParser {
         }
     }
 
-    private void inferFromScripts(Path root, List<SkillRequirement> out) throws IOException {
+    private void inferFromScripts(Path root, List<Requirement> out) throws IOException {
         Path scripts = root.resolve("scripts");
         if (!Files.isDirectory(scripts)) return;
         try (Stream<Path> paths = Files.walk(scripts, 5)) {
@@ -115,7 +141,7 @@ public final class SkillParser {
         return SCRIPT_EXTENSIONS.stream().anyMatch(lower::endsWith);
     }
 
-    private void inferRuntime(List<String> lines, String evidence, List<SkillRequirement> out) {
+    private void inferRuntime(List<String> lines, String evidence, List<Requirement> out) {
         String name = evidence.toLowerCase();
         if (name.endsWith(".py"))
             out.add(SkillRequirement.inferred(RequirementType.RUNTIME, "python", "*", Confidence.HIGH,
@@ -131,7 +157,7 @@ public final class SkillParser {
                     evidence + ":1", sanitizeMatched(lines.getFirst()), "shebang"));
     }
 
-    private void inferCommands(List<String> lines, String evidence, List<SkillRequirement> out) {
+    private void inferCommands(List<String> lines, String evidence, List<Requirement> out) {
         if (!evidence.endsWith(".sh") && !evidence.endsWith(".bash")) return;
         for (int i = 0; i < lines.size(); i++) {
             String line = lines.get(i).strip();
@@ -156,18 +182,20 @@ public final class SkillParser {
         }
     }
 
-    private List<SkillRequirement> deduplicate(List<SkillRequirement> input) {
-        Map<String, SkillRequirement> unique = new LinkedHashMap<>();
-        for (SkillRequirement item : input) {
-            String key = item.type() + "\u0000" + item.name().toLowerCase();
-            SkillRequirement old = unique.get(key);
+    private List<Requirement> deduplicate(List<Requirement> input) {
+        Map<String, Requirement> unique = new LinkedHashMap<>();
+        for (Requirement item : input) {
+            String ecosystem = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue() : "";
+            String key = item.type() + "\u0000" + ecosystem + "\u0000" + item.name().toLowerCase();
+            Requirement old = unique.get(key);
             if (old == null || old.source() == RequirementSource.INFERRED && item.source() == RequirementSource.DECLARED) unique.put(key, item);
         }
         return List.copyOf(unique.values());
     }
 
     private String sanitizeMatched(String raw) {
-        String redacted = SENSITIVE_LITERAL.matcher(raw.strip()).replaceAll("$1<redacted>");
+        String assignments = SENSITIVE_LITERAL.matcher(raw.strip()).replaceAll("$1<redacted>");
+        String redacted = SENSITIVE_TOKEN.matcher(assignments).replaceAll("<redacted>");
         return redacted.length() <= MAX_MATCHED_LENGTH ? redacted : redacted.substring(0, MAX_MATCHED_LENGTH - 1) + "…";
     }
 

@@ -48,11 +48,11 @@ Agent-only reads the target and reasons about the controlled environment itself.
 
 ## Annotation protocol
 
-For each Skill, read `SKILL.md` and only the static files relevant to its workflow. Record all detectable requirements in `annotations/ground-truth.json`; package/library dependencies may be retained with `inScope: false` so V0.1 is not credited or penalized for checks it cannot represent. Every dependency needs a source path and line or frontmatter field. Record provenance (`source`) and necessity (`REQUIRED`, `OPTIONAL`, or `CONDITIONAL`) as separate dimensions.
+For each Skill, read `SKILL.md` and only the static files relevant to its workflow. Record all detectable requirements in `annotations/ground-truth.json`, including Python, npm, and Maven packages in V0.2. Every dependency needs a source path and line or frontmatter field. Record provenance (`source`) and necessity (`REQUIRED`, `OPTIONAL`, or `CONDITIONAL`) as separate dimensions.
 
 Use canonical runtime names `java`, `python`, and `node`; keep command names literal (`python3` remains a command while Python is the runtime). Missing prediction records reduce coverage and their in-scope dependencies count as false negatives, so a method cannot improve recall by omitting hard Skills.
 
-Use `AI_REVIEWED` only after an AI-assisted static pass plus evidence and environment validation. Use `HUMAN_REVIEWED` only after independent human signoff. The published V0.1.1 pilot is AI-assisted and explicitly keeps `humanSignoff: false`; its metrics must not be described as final human-grounded accuracy. Raw READY/WARNING/NOT READY counts are observations about one controlled environment, not ecosystem-wide claims.
+Use `EVIDENCE_REVIEWED` for mechanically validated drafts and `HUMAN_REVIEWED` only after a maintainer has checked dependencies, evidence, necessity, and environment conclusions. Raw READY/WARNING/NOT READY counts are observations about one controlled environment, not ecosystem-wide claims.
 
 Record the runtime/OS/PATH/environment policy because readiness is environment-specific. `environment.json` contains the published controlled environment without local absolute paths or secret values. Capture Agent results with `predictions.schema.json` and the fixed prompts in `prompts/`.
 
@@ -62,8 +62,10 @@ python3 scripts/score-benchmark.py \
   --predictions agent-only.json agent-with-inspector.json
 ```
 
-For a final defensible study, replace AI-assisted labels with two independent human reviews and resolve disagreements before changing status to `HUMAN_REVIEWED`. The current results deliberately preserve that limitation.
+The published ground truth is maintainer-reviewed. Future corpus changes must return affected records to a draft state until their evidence and labels have been reviewed again.
 
 ## Metrics
 
-The scorer reports dependency recall/precision, required-dependency recall, exact compatibility classification accuracy, false-ready and false-block rates, blocking-dependency recall, and diagnosis completeness. Diagnosis completeness is the share of NOT READY cases where every true blocker was reported; it prevents a correct overall classification from hiding an incomplete diagnosis.
+The scorer reports dependency recall/precision, required-dependency recall, exact compatibility classification accuracy, false-ready and false-block rates, blocking-dependency recall, and diagnosis completeness. V0.2 additionally reports package recall, package precision, required-package recall, package false ready, and package `N`. Diagnosis completeness is the share of NOT READY cases where every true blocker was reported; it prevents a correct overall classification from hiding an incomplete diagnosis.
+
+The V0.2 corpus contains Python and npm package labels. Maven support is covered by deterministic tests, while the pinned real-Skill corpus has Maven `N=0`; no Maven benchmark accuracy is inferred from that absence.

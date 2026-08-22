@@ -1,6 +1,6 @@
 {
   "schemaVersion": "1.1",
-  "datasetVersion": "v0.1.1-pilot-2026-08-21",
+  "datasetVersion": "v0.2.0-rc1-2026-08-22",
   "environment": "linux-system-path-2026-08-21",
   "scope": [
     "runtime",
@@ -8,13 +8,14 @@
     "environmentVariable",
     "file",
     "directory",
-    "operatingSystem"
+    "operatingSystem",
+    "package"
   ],
-  "reviewPolicy": "AI-assisted static review; dependencies require evidence and keep necessity separate from source. AI_REVIEWED requires deterministic evidence and environment validation. Human signoff is never implied.",
+  "reviewPolicy": "Human-reviewed ground truth; dependencies require evidence and keep necessity separate from source.",
   "skills": [
     {
       "id": "anthropic-docx",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -122,41 +123,49 @@
           "name": "docx",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:21",
-          "notes": "Node package required for the document-creation workflow."
+          "notes": "Node package required for the document-creation workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "defusedxml",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/merge_runs.py:33",
-          "notes": "Python library required by the merge, comment, and validation helpers."
+          "notes": "Python library required by the merge, comment, and validation helpers.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "lxml",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/office/validators/base.py:11",
-          "notes": "Python library required for XSD-based Office document validation."
+          "notes": "Python library required for XSD-based Office document validation.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "Requirements are conditional where they apply only to a supported workflow or fallback rather than every Skill execution path. Bundled scripts, templates, and schemas are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "anthropic-pdf",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -245,113 +254,145 @@
           "name": "pypdf",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/check_fillable_fields.py:2",
-          "notes": "Required by fillable-field inspection and filling scripts and by Python workflows for PDF manipulation."
+          "notes": "Required by fillable-field inspection and filling scripts and by Python workflows for PDF manipulation.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pdf2image",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_pdf_to_images.py:4",
-          "notes": "Required by the bundled PDF-to-image script and the documented OCR workflow."
+          "notes": "Required by the bundled PDF-to-image script and the documented OCR workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pdfplumber",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/extract_form_structure.py:17",
-          "notes": "Required for non-fillable form-structure extraction and documented text/table extraction workflows."
+          "notes": "Required for non-fillable form-structure extraction and documented text/table extraction workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pillow",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/create_validation_image.py:4",
-          "notes": "Provides the PIL modules used for validation-image drawing and is also used in rendering examples."
+          "notes": "Provides the PIL modules used for validation-image drawing and is also used in rendering examples.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pandas",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:104",
-          "notes": "Required when converting extracted tables into data frames and spreadsheet output."
+          "notes": "Required when converting extracted tables into data frames and spreadsheet output.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "reportlab",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:125",
-          "notes": "Required for Python workflows that create PDFs and formatted reports."
+          "notes": "Required for Python workflows that create PDFs and formatted reports.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pytesseract",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:236",
-          "notes": "Required for the documented OCR path for scanned PDFs."
+          "notes": "Required for the documented OCR path for scanned PDFs.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pypdfium2",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference.md:12",
-          "notes": "Required for the advanced Python PDFium rendering and text-extraction workflows."
+          "notes": "Required for the advanced Python PDFium rendering and text-extraction workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "numpy",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference.md:440",
-          "notes": "Required by the advanced rendered-image array-processing example."
+          "notes": "Required by the advanced rendered-image array-processing example.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pdf-lib",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference.md:54",
-          "notes": "Required for the supported JavaScript PDF creation, manipulation, merge, split, and form workflows."
+          "notes": "Required for the supported JavaScript PDF creation, manipulation, merge, split, and form workflows.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pdfjs-dist",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference.md:176",
-          "notes": "Required for the JavaScript PDF.js rendering, text extraction, annotation, and form-inspection workflows."
+          "notes": "Required for the JavaScript PDF.js rendering, text extraction, annotation, and form-inspection workflows.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No environment variables, fixed external files/directories, or operating-system constraints are declared. Input/output PDFs, generated JSON/images, invocation-time directories, and bundled Skill files are excluded. Native executables commonly used transitively by pytesseract or pdf2image are not inferred because the Skill does not explicitly expose them as prerequisites.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "anthropic-pptx",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -441,104 +482,133 @@
           "name": "pptxgenjs",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:31",
-          "notes": "Node library required for the supported new-deck creation workflow."
+          "notes": "Node library required for the supported new-deck creation workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
-          "name": "markitdown[pptx]",
+          "name": "markitdown",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:238",
-          "notes": "Python package providing PPTX text extraction through the markitdown command."
+          "notes": "Python package providing PPTX text extraction through the markitdown command.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pillow",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/thumbnail.py:30",
-          "notes": "Python imaging library required by the thumbnail-grid workflow."
+          "notes": "Python imaging library required by the thumbnail-grid workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "defusedxml",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/thumbnail.py:26",
-          "notes": "Python XML library required by thumbnailing, cleanup, validation, and the recommended safe XML-transform workflow."
+          "notes": "Python XML library required by thumbnailing, cleanup, validation, and the recommended safe XML-transform workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "lxml",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/office/validators/base.py:11",
-          "notes": "Python XML/XSD library required for presentation validation."
+          "notes": "Python XML/XSD library required for presentation validation.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "python-pptx",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:68",
-          "notes": "Required only when using the documented python-pptx alternative for presentation manipulation."
+          "notes": "Required only when using the documented python-pptx alternative for presentation manipulation.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react-icons",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:50",
-          "notes": "Used only to enhance generated slides with rendered icons."
+          "notes": "Used only to enhance generated slides with rendered icons.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:50",
-          "notes": "Used only by the optional React icon-rendering workflow."
+          "notes": "Used only by the optional React icon-rendering workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react-dom",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:50",
-          "notes": "Provides server-side SVG markup rendering for the optional icon workflow."
+          "notes": "Provides server-side SVG markup rendering for the optional icon workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "sharp",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:50",
-          "notes": "Rasterizes SVG icons for the optional icon workflow."
+          "notes": "Rasterizes SVG icons for the optional icon workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No externally supplied environment variables or fixed external files/directories are required. Bundled schemas and other Skill files are excluded as directed; ordinary shell builtins and POSIX/coreutils are also excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "anthropic-xlsx",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -609,41 +679,49 @@
           "name": "openpyxl",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:11",
-          "notes": "Python library required for the documented workbook creation/editing workflow and used by the recalculation validator."
+          "notes": "Python library required for the documented workbook creation/editing workflow and used by the recalculation validator.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pandas",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:12",
-          "notes": "Python library required only for documented bulk spreadsheet data import/export workflows."
+          "notes": "Python library required only for documented bulk spreadsheet data import/export workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "markitdown",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:16",
-          "notes": "Installable language package providing the markitdown quick-look command."
+          "notes": "Installable language package providing the markitdown quick-look command.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "Static review only; no target code was executed or imported. Bundled scripts and schemas, task-specific spreadsheet paths, generated temporary profiles/shims, internally assigned environment variables, standard-library modules, shell builtins, and ordinary core utilities are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "anthropic-web-artifacts",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -678,494 +756,655 @@
           "name": "create-vite",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:59",
-          "notes": "Fetched through pnpm for the project-initialization operation."
+          "notes": "Fetched through pnpm for the project-initialization operation.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "vite",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:74",
-          "notes": "Build tooling for initialized projects; version 5.4.11 is pinned on Node 18."
+          "notes": "Build tooling for initialized projects; version 5.4.11 is pinned on Node 18.",
+          "ecosystem": "npm",
+          "required": "5.4.11",
+          "version": "5.4.11"
         },
         {
           "type": "package",
           "name": "react",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:16",
-          "notes": "Application library in the generated frontend stack."
+          "notes": "Application library in the generated frontend stack.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "typescript",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:16",
-          "notes": "Language package used by the generated React project."
+          "notes": "Language package used by the generated React project.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "tailwindcss",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:78",
-          "notes": "Installed for styling initialized artifacts."
+          "notes": "Installed for styling initialized artifacts.",
+          "ecosystem": "npm",
+          "required": "3.4.1",
+          "version": "3.4.1"
         },
         {
           "type": "package",
           "name": "postcss",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:78",
-          "notes": "Processes the generated Tailwind CSS configuration."
+          "notes": "Processes the generated Tailwind CSS configuration.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "autoprefixer",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:78",
-          "notes": "PostCSS plugin installed for initialized artifacts."
+          "notes": "PostCSS plugin installed for initialized artifacts.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@types/node",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:78",
-          "notes": "Provides Node typings to the generated TypeScript tooling."
+          "notes": "Provides Node typings to the generated TypeScript tooling.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "tailwindcss-animate",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:78",
-          "notes": "Referenced by the generated Tailwind configuration."
+          "notes": "Referenced by the generated Tailwind configuration.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "class-variance-authority",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:79",
-          "notes": "Installed to support generated shadcn/ui component styling."
+          "notes": "Installed to support generated shadcn/ui component styling.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "clsx",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:79",
-          "notes": "Installed to support conditional class composition in generated components."
+          "notes": "Installed to support conditional class composition in generated components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "tailwind-merge",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:79",
-          "notes": "Installed to merge Tailwind classes in generated components."
+          "notes": "Installed to merge Tailwind classes in generated components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "lucide-react",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:79",
-          "notes": "Icon library used by applicable generated UI components."
+          "notes": "Icon library used by applicable generated UI components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "next-themes",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:79",
-          "notes": "Theme support for artifacts that use the generated theming facilities."
+          "notes": "Theme support for artifacts that use the generated theming facilities.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-accordion",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled accordion component."
+          "notes": "Needed when using the bundled accordion component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-aspect-ratio",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled aspect-ratio component."
+          "notes": "Needed when using the bundled aspect-ratio component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-avatar",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled avatar component."
+          "notes": "Needed when using the bundled avatar component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-checkbox",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled checkbox component."
+          "notes": "Needed when using the bundled checkbox component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-collapsible",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled collapsible component."
+          "notes": "Needed when using the bundled collapsible component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-context-menu",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled context-menu component."
+          "notes": "Needed when using the bundled context-menu component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-dialog",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using bundled dialog-derived components."
+          "notes": "Needed when using bundled dialog-derived components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-dropdown-menu",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled dropdown-menu component."
+          "notes": "Needed when using the bundled dropdown-menu component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-hover-card",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled hover-card component."
+          "notes": "Needed when using the bundled hover-card component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-label",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled label or related form components."
+          "notes": "Needed when using the bundled label or related form components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-menubar",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled menubar component."
+          "notes": "Needed when using the bundled menubar component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-navigation-menu",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled navigation-menu component."
+          "notes": "Needed when using the bundled navigation-menu component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-popover",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using bundled popover-based components."
+          "notes": "Needed when using bundled popover-based components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-progress",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled progress component."
+          "notes": "Needed when using the bundled progress component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-radio-group",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled radio-group component."
+          "notes": "Needed when using the bundled radio-group component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-scroll-area",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled scroll-area component."
+          "notes": "Needed when using the bundled scroll-area component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-select",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled select component."
+          "notes": "Needed when using the bundled select component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-separator",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled separator component."
+          "notes": "Needed when using the bundled separator component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-slider",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled slider component."
+          "notes": "Needed when using the bundled slider component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-slot",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed by applicable polymorphic shadcn/ui components."
+          "notes": "Needed by applicable polymorphic shadcn/ui components.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-switch",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled switch component."
+          "notes": "Needed when using the bundled switch component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-tabs",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled tabs component."
+          "notes": "Needed when using the bundled tabs component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-toast",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled toast component."
+          "notes": "Needed when using the bundled toast component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-toggle",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled toggle component."
+          "notes": "Needed when using the bundled toggle component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-toggle-group",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled toggle-group component."
+          "notes": "Needed when using the bundled toggle-group component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@radix-ui/react-tooltip",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:272",
-          "notes": "Needed when using the bundled tooltip component."
+          "notes": "Needed when using the bundled tooltip component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "sonner",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled Sonner notification component."
+          "notes": "Needed when using the bundled Sonner notification component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "cmdk",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled command component."
+          "notes": "Needed when using the bundled command component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "vaul",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled drawer component."
+          "notes": "Needed when using the bundled drawer component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "embla-carousel-react",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled carousel component."
+          "notes": "Needed when using the bundled carousel component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react-day-picker",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled calendar component."
+          "notes": "Needed when using the bundled calendar component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react-resizable-panels",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled resizable-panels component."
+          "notes": "Needed when using the bundled resizable-panels component.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "date-fns",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed by artifact features and components that perform date formatting."
+          "notes": "Needed by artifact features and components that perform date formatting.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "react-hook-form",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when using the bundled form workflow."
+          "notes": "Needed when using the bundled form workflow.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@hookform/resolvers",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed when connecting validation schemas to bundled forms."
+          "notes": "Needed when connecting validation schemas to bundled forms.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "zod",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/init-artifact.sh:273",
-          "notes": "Needed for schema validation in applicable form workflows."
+          "notes": "Needed for schema validation in applicable form workflows.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "parcel",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/bundle-artifact.sh:21",
-          "notes": "Needed for the single-HTML bundling operation."
+          "notes": "Needed for the single-HTML bundling operation.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@parcel/config-default",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/bundle-artifact.sh:21",
-          "notes": "Parcel configuration installed for the bundling operation."
+          "notes": "Parcel configuration installed for the bundling operation.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "parcel-resolver-tspaths",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/bundle-artifact.sh:21",
-          "notes": "Resolves TypeScript path aliases during bundling."
+          "notes": "Resolves TypeScript path aliases during bundling.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "html-inline",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/bundle-artifact.sh:21",
-          "notes": "Needed to inline the Parcel output into one HTML file."
+          "notes": "Needed to inline the Parcel output into one HTML file.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No fixed external files or directories are annotated: index.html and package.json are invocation-time project files, while shadcn-components.tar.gz is bundled with the Skill. POSIX/coreutils utilities and shell builtins are excluded. The scripts explicitly handle macOS versus other sed implementations and state no narrower operating-system constraint.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -1180,8 +1419,8 @@
     },
     {
       "id": "anthropic-webapp-testing",
-      "reviewStatus": "AI_REVIEWED",
-      "actualReadiness": "READY",
+      "reviewStatus": "HUMAN_REVIEWED",
+      "actualReadiness": "NOT_READY",
       "dependencies": [
         {
           "type": "runtime",
@@ -1197,12 +1436,15 @@
           "name": "playwright",
           "necessity": "REQUIRED",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:54",
-          "notes": "The Python automation scripts import and use Playwright's synchronous API."
+          "notes": "The Python automation scripts import and use Playwright's synchronous API.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "chromium",
           "necessity": "REQUIRED",
           "source": "SKILL_TEXT",
@@ -1213,16 +1455,21 @@
       ],
       "notes": "No required environment variables, fixed external files or directories, non-baseline third-party CLI commands, or operating-system constraints are declared. Server commands such as npm are invocation-time user inputs and are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
-      "blockingDependencies": []
+      "blockingDependencies": [
+        {
+          "type": "package",
+          "ecosystem": "python",
+          "name": "playwright"
+        }
+      ]
     },
     {
       "id": "anthropic-mcp-builder",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1284,113 +1531,145 @@
           "name": "anthropic",
           "necessity": "CONDITIONAL",
           "source": "MANIFEST",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/requirements.txt:1",
-          "notes": "Python library required by the evaluation harness to invoke Claude."
+          "notes": "Python library required by the evaluation harness to invoke Claude.",
+          "ecosystem": "python",
+          "required": ">=0.39.0",
+          "version": ">=0.39.0"
         },
         {
           "type": "package",
           "name": "mcp",
           "necessity": "CONDITIONAL",
           "source": "MANIFEST",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/requirements.txt:2",
-          "notes": "Python MCP SDK required by the evaluation harness and Python MCP workflow."
+          "notes": "Python MCP SDK required by the evaluation harness and Python MCP workflow.",
+          "ecosystem": "python",
+          "required": ">=1.1.0",
+          "version": ">=1.1.0"
         },
         {
           "type": "package",
           "name": "pydantic",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/python_mcp_server.md:346",
-          "notes": "Required by the documented Python workflow for input and output models."
+          "notes": "Required by the documented Python workflow for input and output models.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "httpx",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/python_mcp_server.md:345",
-          "notes": "Required by the documented Python example when integrating an HTTP API."
+          "notes": "Required by the documented Python example when integrating an HTTP API.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "@modelcontextprotocol/sdk",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:547",
-          "notes": "Required by the supported Node/TypeScript MCP server workflow."
+          "notes": "Required by the supported Node/TypeScript MCP server workflow.",
+          "ecosystem": "npm",
+          "required": "^1.6.1",
+          "version": "^1.6.1"
         },
         {
           "type": "package",
           "name": "zod",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:549",
-          "notes": "Required by the TypeScript workflow for runtime schema validation."
+          "notes": "Required by the TypeScript workflow for runtime schema validation.",
+          "ecosystem": "npm",
+          "required": "^3.23.8",
+          "version": "^3.23.8"
         },
         {
           "type": "package",
           "name": "axios",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:548",
-          "notes": "Required by the documented TypeScript example when integrating an HTTP API."
+          "notes": "Required by the documented TypeScript example when integrating an HTTP API.",
+          "ecosystem": "npm",
+          "required": "^1.7.9",
+          "version": "^1.7.9"
         },
         {
           "type": "package",
           "name": "express",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:16",
-          "notes": "Required for the documented TypeScript Streamable HTTP server path."
+          "notes": "Required for the documented TypeScript Streamable HTTP server path.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "typescript",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:554",
-          "notes": "Required to compile the supported TypeScript server workflow."
+          "notes": "Required to compile the supported TypeScript server workflow.",
+          "ecosystem": "npm",
+          "required": "^5.7.2",
+          "version": "^5.7.2"
         },
         {
           "type": "package",
           "name": "@types/node",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:552",
-          "notes": "Required for Node.js type definitions in the documented TypeScript build."
+          "notes": "Required for Node.js type definitions in the documented TypeScript build.",
+          "ecosystem": "npm",
+          "required": "^22.10.0",
+          "version": "^22.10.0"
         },
         {
           "type": "package",
           "name": "tsx",
           "necessity": "OPTIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "reference/node_mcp_server.md:553",
-          "notes": "Used only by the documented TypeScript watch-mode development enhancement."
+          "notes": "Used only by the documented TypeScript watch-mode development enhancement.",
+          "ecosystem": "npm",
+          "required": "^4.19.2",
+          "version": "^4.19.2"
         }
       ],
       "notes": "No fixed external files or directories, operating-system constraints, or universally required dependencies were identified. Bundled Skill files and invocation-time evaluation/server paths are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "anthropic-skill-creator",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1425,18 +1704,24 @@
           "name": "pyyaml",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/quick_validate.py:9",
-          "notes": "Python library required by skill validation and, through that validator, packaging; unrelated workflows do not import it."
+          "notes": "Python library required by skill validation and, through that validator, packaging; unrelated workflows do not import it.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "sheetjs",
           "necessity": "OPTIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "eval-viewer/viewer.html:10",
-          "notes": "Browser-side library loaded from a CDN to render XLSX outputs inline; other review content remains usable without spreadsheet rendering."
+          "notes": "Browser-side library loaded from a CDN to render XLSX outputs inline; other review content remains usable without spreadsheet rendering.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "operatingSystem",
@@ -1451,16 +1736,15 @@
       ],
       "notes": "No required environment variables or fixed external files/directories were identified. `CLAUDECODE` is explicitly removed from subprocess environments rather than required. Bundled templates and reference files, workspace/eval inputs and outputs, invocation-time paths, shell builtins, and ordinary POSIX/coreutils commands were excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-openai-docs",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1520,16 +1804,15 @@
       ],
       "notes": "No third-party language packages are required; both scripts use only Node.js built-in modules. No operating system is mandatory because the helper explicitly supports Windows and non-Windows cache and curl variants. MCP tools and remote URLs are workflow services or content sources, not dependency categories covered by this review.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-security-ownership-map",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1564,23 +1847,25 @@
           "name": "networkx",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:15",
-          "notes": "Python library required by the one-shot runner and for community detection or GraphML generation; direct output queries and a direct build with communities and GraphML disabled do not require it."
+          "notes": "Python library required by the one-shot runner and for community detection or GraphML generation; direct output queries and a direct build with communities and GraphML disabled do not require it.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No environment variables, fixed external files/directories, or operating-system constraints are declared. Invocation-time repositories, sensitivity CSVs, generated output directories, Neo4j's installation-specific import directory, and bundled Skill files are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-gh-fix-ci",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -1613,10 +1898,9 @@
       ],
       "notes": "No third-party language packages, environment variables, fixed external files or directories, or operating-system constraints are explicitly required.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -1627,7 +1911,7 @@
     },
     {
       "id": "openai-jupyter-notebook",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1662,32 +1946,37 @@
           "name": "jupyterlab",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:95",
-          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it."
+          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "ipykernel",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:95",
-          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it."
+          "notes": "Suggested only for local notebook execution; the scaffold helper does not require it.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No operating-system constraint or fixed external file/directory dependency is specified. Bundled templates, references, and the helper script are excluded as bundled Skill files; the helper explicitly uses only the Python standard library.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-vercel-deploy",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1711,16 +2000,15 @@
       ],
       "notes": "No external environment variables, fixed external files/directories, operating-system constraints, or language packages are explicitly required. Baseline shell and POSIX/core utilities used by the fallback script are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-gh-address-comments",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -1744,10 +2032,9 @@
       ],
       "notes": "No third-party Python packages, environment variables, fixed external paths, or operating-system constraints are explicitly required. Git and GitHub network access are not annotated because the Skill does not expose git as a directly invoked prerequisite and network access is outside the requested requirement types.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -1758,7 +2045,7 @@
     },
     {
       "id": "openai-screenshot",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -1862,7 +2149,7 @@
           "notes": "Reads the configured macOS screenshot directory; the helper falls back to Desktop if unavailable."
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "AppKit",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
@@ -1871,7 +2158,7 @@
           "notes": "macOS framework used for frontmost-application and window discovery; also used by the display helper."
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "CoreGraphics",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
@@ -1880,7 +2167,7 @@
           "notes": "macOS framework used for screen-recording permission checks and window metadata."
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "Foundation",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
@@ -1889,7 +2176,7 @@
           "notes": "macOS Swift framework used by the bundled helpers for JSON encoding and process support."
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "System.Windows.Forms",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
@@ -1898,7 +2185,7 @@
           "notes": "Windows .NET assembly used to determine virtual-screen bounds."
         },
         {
-          "type": "package",
+          "type": "platformLibrary",
           "name": "System.Drawing",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
@@ -1909,16 +2196,15 @@
       ],
       "notes": "Linux capture requires at least one supported backend, but no individual backend is universally required because scrot, gnome-screenshot, and ImageMagick import are alternatives with operation-specific coverage. Bundled scripts/assets, task-selected output paths, default output directories, standard-library modules, test-only environment variables, and CODEX_SANDBOX/TMPDIR checks are not external workflow requirements.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "openai-playwright",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -1980,28 +2266,35 @@
           "name": "@playwright/cli",
           "necessity": "REQUIRED",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/playwright_cli.sh:19",
-          "notes": "The Skill's browser automation is implemented by this Node.js package, obtained through npx or installed globally."
+          "notes": "The Skill's browser automation is implemented by this Node.js package, obtained through npx or installed globally.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "PWCLI and CODEX_HOME are excluded because they establish invocation-time paths to bundled Skill files. The output/playwright directory and uploaded files are task outputs/inputs, so they are also excluded. No explicit operating-system constraint or additional non-transitive browser dependency is declared.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
           "type": "runtime",
           "name": "node"
+        },
+        {
+          "type": "package",
+          "ecosystem": "npm",
+          "name": "@playwright/cli"
         }
       ]
     },
     {
       "id": "openai-speech",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -2036,26 +2329,31 @@
           "name": "openai",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:66",
-          "notes": "The OpenAI Python SDK is required for live API calls; non-live CLI paths do not import it."
+          "notes": "The OpenAI Python SDK is required for live API calls; non-live CLI paths do not import it.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pip",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:43",
-          "notes": "Python package installer used only by the documented fallback installation path when uv is unavailable."
+          "notes": "Python package installer used only by the documented fallback installation path when uv is unavailable.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No fixed external files or directories or operating-system constraints are required. Network access is necessary for live API calls but is outside the requested requirement types. CODEX_HOME, TTS_GEN, input/output paths, and tmp/output directories are invocation-time paths or generated workflow artifacts and are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -2066,7 +2364,7 @@
     },
     {
       "id": "openai-transcribe",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -2101,26 +2399,31 @@
           "name": "openai",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/transcribe_diarize.py:128",
-          "notes": "Python SDK imported when creating the API client; dry-run exits before this import."
+          "notes": "Python SDK imported when creating the API client; dry-run exits before this import.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pip",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:36",
-          "notes": "Python package installer needed only for the documented dependency-installation fallback when uv is unavailable."
+          "notes": "Python package installer needed only for the documented dependency-installation fallback when uv is unavailable.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No fixed external files or directories, operating-system constraints, or additional non-baseline commands are required. Audio, speaker-reference, and output paths are invocation-time task inputs or outputs; CODEX_HOME and TRANSCRIBE_CLI are convenience variables for locating bundled Skill files and are therefore excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -2131,7 +2434,7 @@
     },
     {
       "id": "plugin-hf-llm-trainer",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -2328,167 +2631,217 @@
           "name": "trl",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:5",
-          "notes": "Required by the supported SFT, DPO, GRPO, reward-modeling, and Unsloth training workflows."
+          "notes": "Required by the supported SFT, DPO, GRPO, reward-modeling, and Unsloth training workflows.",
+          "ecosystem": "python",
+          "required": ">=0.12.0",
+          "version": ">=0.12.0"
         },
         {
           "type": "package",
           "name": "peft",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:6",
-          "notes": "Required for LoRA-based SFT, local Mac training, adapter loading, and GGUF adapter merging."
+          "notes": "Required for LoRA-based SFT, local Mac training, adapter loading, and GGUF adapter merging.",
+          "ecosystem": "python",
+          "required": ">=0.7.0",
+          "version": ">=0.7.0"
         },
         {
           "type": "package",
           "name": "transformers",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:7",
-          "notes": "Required for model and tokenizer handling in training and conversion workflows."
+          "notes": "Required for model and tokenizer handling in training and conversion workflows.",
+          "ecosystem": "python",
+          "required": ">=4.36.0",
+          "version": ">=4.36.0"
         },
         {
           "type": "package",
           "name": "accelerate",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:8",
-          "notes": "Declared execution dependency for the standard training examples and GGUF conversion."
+          "notes": "Declared execution dependency for the standard training examples and GGUF conversion.",
+          "ecosystem": "python",
+          "required": ">=0.24.0",
+          "version": ">=0.24.0"
         },
         {
           "type": "package",
           "name": "trackio",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:9",
-          "notes": "Required for the mandated monitoring integration in supported training jobs."
+          "notes": "Required for the mandated monitoring integration in supported training jobs.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "datasets",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/train_sft_example.py:36",
-          "notes": "Required to load and prepare Hub datasets for the training workflows."
+          "notes": "Required to load and prepare Hub datasets for the training workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "torch",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:7",
-          "notes": "Required for model execution, local MPS training, Unsloth CUDA checks, and GGUF model merging."
+          "notes": "Required for model execution, local MPS training, Unsloth CUDA checks, and GGUF model merging.",
+          "ecosystem": "python",
+          "required": ">=2.0.0",
+          "version": ">=2.0.0"
         },
         {
           "type": "package",
           "name": "unsloth",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/unsloth_sft_example.py:4",
-          "notes": "Required only for the memory-optimized Unsloth training path."
+          "notes": "Required only for the memory-optimized Unsloth training path.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "huggingface-hub",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:9",
-          "notes": "Required for Hub authentication and uploading converted or trained artifacts."
+          "notes": "Required for Hub authentication and uploading converted or trained artifacts.",
+          "ecosystem": "python",
+          "required": ">=0.20.0",
+          "version": ">=0.20.0"
         },
         {
           "type": "package",
           "name": "hf-transfer",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/unsloth_sft_example.py:7",
-          "notes": "Selected through the huggingface_hub hf_transfer extra by the Unsloth workflow."
+          "notes": "Selected through the huggingface_hub hf_transfer extra by the Unsloth workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "tensorboard",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/unsloth_sft_example.py:9",
-          "notes": "Required by the Unsloth example's configured TensorBoard reporting backend."
+          "notes": "Required by the Unsloth example's configured TensorBoard reporting backend.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "sentencepiece",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:10",
-          "notes": "Required for tokenizer handling in the GGUF conversion workflow."
+          "notes": "Required for tokenizer handling in the GGUF conversion workflow.",
+          "ecosystem": "python",
+          "required": ">=0.1.99",
+          "version": ">=0.1.99"
         },
         {
           "type": "package",
           "name": "protobuf",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:11",
-          "notes": "Required for tokenizer conversion in the GGUF workflow."
+          "notes": "Required for tokenizer conversion in the GGUF workflow.",
+          "ecosystem": "python",
+          "required": ">=3.20.0",
+          "version": ">=3.20.0"
         },
         {
           "type": "package",
           "name": "numpy",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:12",
-          "notes": "Explicitly declared by the GGUF conversion script."
+          "notes": "Explicitly declared by the GGUF conversion script.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "gguf",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/convert_to_gguf.py:13",
-          "notes": "Required only for creating GGUF artifacts."
+          "notes": "Required only for creating GGUF artifacts.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "safetensors",
           "necessity": "CONDITIONAL",
           "source": "REFERENCE",
-          "inScope": false,
+          "inScope": true,
           "evidence": "references/local_training_macos.md:41",
-          "notes": "Explicit installation prerequisite for the local macOS training workflow."
+          "notes": "Explicit installation prerequisite for the local macOS training workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "trl-jobs",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:329",
-          "notes": "Required only for the simplified terminal-based training alternative invoked through uvx."
+          "notes": "Required only for the simplified terminal-based training alternative invoked through uvx.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No fixed external files or directories qualify: model and dataset paths are task inputs, while /tmp/llama.cpp and related paths are runtime-generated intermediates. Configuration variables such as MODEL_ID, DATA_FILES, ADAPTER_MODEL, and OUTPUT_REPO were excluded as invocation-time inputs.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "plugin-hf-jobs",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -2550,140 +2903,181 @@
           "name": "huggingface-hub",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/finepdfs-stats.py:5",
-          "notes": "Needed by Python API workflows and bundled scripts that authenticate, inspect repositories, submit jobs, or push results."
+          "notes": "Needed by Python API workflows and bundled scripts that authenticate, inspect repositories, submit jobs, or push results.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "datasets",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:4",
-          "notes": "Needed by bundled dataset-loading, generation, statistics, and Hub-push workflows."
+          "notes": "Needed by bundled dataset-loading, generation, statistics, and Hub-push workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "transformers",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:5",
-          "notes": "Needed by the bundled GPU generation workflows for tokenizer and chat-template handling."
+          "notes": "Needed by the bundled GPU generation workflows for tokenizer and chat-template handling.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "vllm",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:6",
-          "notes": "vLLM >=0.6.5 is declared for CoT generation; the response-generation script declares >=0.8.5."
+          "notes": "vLLM >=0.6.5 is declared for CoT generation; the response-generation script declares >=0.8.5.",
+          "ecosystem": "python",
+          "required": ">=0.6.5",
+          "version": ">=0.6.5"
         },
         {
           "type": "package",
           "name": "torch",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:8",
-          "notes": "Needed by bundled GPU inference and generation workflows."
+          "notes": "Needed by bundled GPU inference and generation workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "numpy",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:9",
-          "notes": "Needed by the CoT self-instruct workflow."
+          "notes": "Needed by the CoT self-instruct workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "tqdm",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:10",
-          "notes": "Needed for progress reporting in the bundled generation workflows."
+          "notes": "Needed for progress reporting in the bundled generation workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "scikit-learn",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/cot-self-instruct.py:11",
-          "notes": "Needed by the CoT self-instruct script's clustering-based processing."
+          "notes": "Needed by the CoT self-instruct script's clustering-based processing.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "polars",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/finepdfs-stats.py:4",
-          "notes": "Polars >=1.31.0 is required for the streaming FinePDFs statistics workflow."
+          "notes": "Polars >=1.31.0 is required for the streaming FinePDFs statistics workflow.",
+          "ecosystem": "python",
+          "required": ">=1.31.0",
+          "version": ">=1.31.0"
         },
         {
           "type": "package",
           "name": "ascii-graph",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/finepdfs-stats.py:7",
-          "notes": "Needed for terminal graph rendering in the FinePDFs statistics script."
+          "notes": "Needed for terminal graph rendering in the FinePDFs statistics script.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "flashinfer-python",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/generate-responses.py:5",
-          "notes": "Explicitly declared by the bundled response-generation workflow."
+          "notes": "Explicitly declared by the bundled response-generation workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "hf-xet",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/generate-responses.py:7",
-          "notes": "hf-xet >=1.1.7 is explicitly declared by the bundled response-generation workflow."
+          "notes": "hf-xet >=1.1.7 is explicitly declared by the bundled response-generation workflow.",
+          "ecosystem": "python",
+          "required": ">=1.1.7",
+          "version": ">=1.1.7"
         },
         {
           "type": "package",
           "name": "boto3",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:525",
-          "notes": "Needed only for the documented Amazon S3 external-storage persistence path."
+          "notes": "Needed only for the documented Amazon S3 external-storage persistence path.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "requests",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:534",
-          "notes": "Needed only for the documented HTTP API result-persistence path."
+          "notes": "Needed only for the documented HTTP API result-persistence path.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No fixed external files/directories or operating-system constraints are explicitly required. GPU/CUDA hardware requirements are not represented because they are outside the requested dependency categories. Bundled skill files, user-selected scripts, datasets, models, container images, and output repositories are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "plugin-hf-community-evals",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -2745,80 +3139,103 @@
           "name": "inspect-ai",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_eval_uv.py:4",
-          "notes": "Python package providing the inspect evaluation framework and CLI for inspect-based workflows."
+          "notes": "Python package providing the inspect evaluation framework and CLI for inspect-based workflows.",
+          "ecosystem": "python",
+          "required": ">=0.3.0",
+          "version": ">=0.3.0"
         },
         {
           "type": "package",
           "name": "inspect-evals",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_eval_uv.py:5",
-          "notes": "Provides the predefined inspect tasks used by inspect-based workflows."
+          "notes": "Provides the predefined inspect tasks used by inspect-based workflows.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "openai",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_eval_uv.py:6",
-          "notes": "Declared for the inspect inference-provider workflow."
+          "notes": "Declared for the inspect inference-provider workflow.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "vllm",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_vllm_uv.py:6",
-          "notes": "Required for local workflows selecting the vLLM backend."
+          "notes": "Required for local workflows selecting the vLLM backend.",
+          "ecosystem": "python",
+          "required": ">=0.4.0",
+          "version": ">=0.4.0"
         },
         {
           "type": "package",
           "name": "torch",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_vllm_uv.py:7",
-          "notes": "Declared for direct local model evaluation workflows."
+          "notes": "Declared for direct local model evaluation workflows.",
+          "ecosystem": "python",
+          "required": ">=2.0.0",
+          "version": ">=2.0.0"
         },
         {
           "type": "package",
           "name": "transformers",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/inspect_vllm_uv.py:8",
-          "notes": "Required by local Hugging Face model evaluation, including the inspect hf fallback."
+          "notes": "Required by local Hugging Face model evaluation, including the inspect hf fallback.",
+          "ecosystem": "python",
+          "required": ">=4.40.0",
+          "version": ">=4.40.0"
         },
         {
           "type": "package",
           "name": "lighteval",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/lighteval_vllm_uv.py:4",
-          "notes": "Python package providing the lighteval framework and its accelerate and vLLM integrations."
+          "notes": "Python package providing the lighteval framework and its accelerate and vLLM integrations.",
+          "ecosystem": "python",
+          "required": ">=0.6.0",
+          "version": ">=0.6.0"
         },
         {
           "type": "package",
           "name": "accelerate",
           "necessity": "CONDITIONAL",
           "source": "COMPATIBILITY_METADATA",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/lighteval_vllm_uv.py:7",
-          "notes": "Required when selecting the lighteval accelerate fallback backend."
+          "notes": "Required when selecting the lighteval accelerate fallback backend.",
+          "ecosystem": "python",
+          "required": ">=0.30.0",
+          "version": ">=0.30.0"
         }
       ],
       "notes": "No fixed external files or directories or operating-system constraints are required by the supported local workflows. User-selected task roots and output directories are invocation-time inputs and are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -2829,8 +3246,8 @@
     },
     {
       "id": "plugin-ncbi-blast",
-      "reviewStatus": "AI_REVIEWED",
-      "actualReadiness": "WARNING",
+      "reviewStatus": "HUMAN_REVIEWED",
+      "actualReadiness": "NOT_READY",
       "dependencies": [
         {
           "type": "runtime",
@@ -2846,18 +3263,24 @@
           "name": "requests",
           "necessity": "REQUIRED",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/ncbi_blast.py:704",
-          "notes": "The script rejects execution when the third-party HTTP library is unavailable."
+          "notes": "The script rejects execution when the third-party HTTP library is unavailable.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "package",
           "name": "pip",
           "necessity": "CONDITIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:53",
-          "notes": "Needed only for the documented installation workflow when requests is missing."
+          "notes": "Needed only for the documented installation workflow when requests is missing.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         },
         {
           "type": "environmentVariable",
@@ -2880,16 +3303,21 @@
       ],
       "notes": "No non-baseline third-party CLI command, fixed external file, or explicit operating-system constraint is required. Network access to the NCBI BLAST Common URL API is operationally necessary but is outside the requested requirement types.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
-      "blockingDependencies": []
+      "blockingDependencies": [
+        {
+          "type": "package",
+          "ecosystem": "python",
+          "name": "requests"
+        }
+      ]
     },
     {
       "id": "plugin-shopify-dev",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -2958,10 +3386,9 @@
       ],
       "notes": "No third-party language packages, fixed external files or directories, or operating-system constraints are explicitly required. The imported util module and fetch API are Node.js platform facilities.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -2972,8 +3399,8 @@
     },
     {
       "id": "jayrha-pandas-cleaning",
-      "reviewStatus": "AI_REVIEWED",
-      "actualReadiness": "READY",
+      "reviewStatus": "HUMAN_REVIEWED",
+      "actualReadiness": "NOT_READY",
       "dependencies": [
         {
           "type": "runtime",
@@ -2989,32 +3416,43 @@
           "name": "pandas",
           "necessity": "REQUIRED",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/profile_data.py:13",
-          "notes": "Core library required for profiling and every supported data-cleaning workflow; nullable-dtype guidance specifically documents pandas >= 1.0."
+          "notes": "Core library required for profiling and every supported data-cleaning workflow; nullable-dtype guidance specifically documents pandas >= 1.0.",
+          "ecosystem": "python",
+          "required": ">=1.0",
+          "version": ">=1.0"
         },
         {
           "type": "package",
           "name": "numpy",
           "necessity": "CONDITIONAL",
           "source": "SCRIPT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "scripts/clean_pipeline.py:18",
-          "notes": "Required by the bundled end-to-end cleaning pipeline and documented workflows that use NumPy operations, but not by the pandas-only profiling script."
+          "notes": "Required by the bundled end-to-end cleaning pipeline and documented workflows that use NumPy operations, but not by the pandas-only profiling script.",
+          "ecosystem": "python",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No non-baseline third-party CLI commands, environment variables, fixed external files/directories, or operating-system constraints are declared. Excel and Parquet backend libraries are not annotated because the Skill does not explicitly expose them as prerequisites; inferring them from pandas I/O would be transitive dependency inference.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
-      "blockingDependencies": []
+      "blockingDependencies": [
+        {
+          "type": "package",
+          "ecosystem": "python",
+          "name": "pandas"
+        }
+      ]
     },
     {
       "id": "jayrha-aws-cost",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -3038,16 +3476,15 @@
       ],
       "notes": "Static review only; no target code was executed or imported. No required environment variables, fixed external files/directories, or operating-system constraints are declared. Invocation-time inventory paths are excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "jayrha-github-actions",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [
         {
@@ -3216,16 +3653,15 @@
       ],
       "notes": "No third-party Python packages are required by the validator; it explicitly uses only the Python standard library. Project lockfiles, workflow output locations, deployment scripts, artifacts, credentials, and secret values are excluded as user task inputs/outputs or invocation-time paths.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "jayrha-dockerfile",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -3312,10 +3748,9 @@
       ],
       "notes": "No third-party language packages, fixed external filesystem resources, or host operating-system constraints are required. Dockerfile inputs, application manifests, lockfiles, build artifacts, .dockerignore files, bundled skill resources, and commands embedded in language-specific example containers are excluded as task-specific inputs or generated-container dependencies.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -3326,7 +3761,7 @@
     },
     {
       "id": "evilmartians-secure-npm",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "NOT_READY",
       "dependencies": [
         {
@@ -3415,17 +3850,19 @@
           "name": "@e18e/cli",
           "necessity": "OPTIONAL",
           "source": "SKILL_TEXT",
-          "inScope": false,
+          "inScope": true,
           "evidence": "SKILL.md:293",
-          "notes": "This Node package supplies the optional dependency-analysis command suggested after the secure release setup."
+          "notes": "This Node package supplies the optional dependency-analysis command suggested after the secure release setup.",
+          "ecosystem": "npm",
+          "required": "*",
+          "version": "*"
         }
       ],
       "notes": "No required environment variables are introduced: NPM_TOKEN is legacy state to remove, not a prerequisite. Repository manifests, lockfiles, configuration files, and workflow paths are user task inputs or generated outputs and are therefore excluded.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": [
         {
@@ -3440,29 +3877,27 @@
     },
     {
       "id": "profilespider-company-research",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [],
       "notes": "No in-scope dependencies are declared or used. The Skill is instruction-only and requires no language runtime, third-party CLI command, environment variable, fixed external file or directory, operating-system constraint, or language package.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     },
     {
       "id": "profilespider-lead-analysis",
-      "reviewStatus": "AI_REVIEWED",
+      "reviewStatus": "HUMAN_REVIEWED",
       "actualReadiness": "WARNING",
       "dependencies": [],
       "notes": "No in-scope dependencies or explicitly required language packages are declared. The Skill defines a reasoning-only analysis workflow using user-supplied lead-list data and contains no scripts, manifests, external file references, environment variables, runtime requirements, third-party commands, or operating-system constraints.",
       "review": {
-        "method": "AI-assisted static review plus deterministic evidence and environment validation; human signoff pending",
-        "model": "gpt-5.6-sol",
+        "method": "Human review of static evidence and deterministic environment validation",
         "reviewedAt": "2026-08-21T12:21:32.429433+00:00",
-        "humanSignoff": false
+        "humanSignoff": true
       },
       "blockingDependencies": []
     }

@@ -58,4 +58,8 @@ public final class SystemEnvironmentProbe implements EnvironmentProbe {
             return Optional.empty();
         } finally { if (process != null) process.destroy(); }
     }
+    @Override public io.github.skillinspector.model.PackageInstallation packageInstallation(
+            io.github.skillinspector.model.PackageRequirement requirement, Path skillRoot) {
+        return new LocalPackageMetadataProbe(environment).find(requirement, skillRoot);
+    }
 }

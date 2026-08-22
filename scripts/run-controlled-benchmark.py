@@ -29,6 +29,7 @@ def controlled_environment() -> dict[str, str]:
                "HTTPS_PROXY", "HTTP_PROXY", "ALL_PROXY", "NO_PROXY", "CODEX_HOME"}
     environment = {key: value for key, value in os.environ.items() if key in allowed}
     environment["PATH"] = "/usr/bin:/bin"
+    environment["SKILL_INSPECTOR_PACKAGE_METADATA_MODE"] = "isolated"
     environment.setdefault("LANG", "C.UTF-8")
     environment.setdefault("CODEX_HOME", str(Path.home() / ".codex"))
     return environment
@@ -72,11 +73,25 @@ def prediction_requirement(item: dict[str, Any], source: str | None = None) -> d
     result = {"type": item["type"], "name": item["name"], "inScope": True,
               "evidence": item.get("evidence") or "No evidence returned",
               "necessity": item.get("necessity", "CONDITIONAL")}
+    if item.get("ecosystem"):
+        result["ecosystem"] = item["ecosystem"]
+    if item.get("version") or item.get("required"):
+        result["required"] = item.get("version") or item.get("required")
     if source or item.get("source"):
         result["source"] = source or item["source"]
     if item.get("confidence"):
         result["confidence"] = item["confidence"]
     return result
+
+
+def semantic_handoff(payload: dict[str, Any]) -> dict[str, Any]:
+    handoff = json.loads(json.dumps(payload))
+    for requirement in handoff.get("requirements", []):
+        for field in [name for name, value in requirement.items() if value is None]:
+            requirement.pop(field)
+        if requirement.get("type") != "package":
+            requirement.pop("ecosystem", None)
+    return handoff
 
 
 def run_trial(method: str, run_number: int, skill_id: str, target: Path, project: Path,
@@ -100,8 +115,11 @@ def run_trial(method: str, run_number: int, skill_id: str, target: Path, project
              "\nReturn semantic requirements only. Do not inspect availability; Java will verify it."
     payload = run_codex(codex, model, target, (project / "benchmark/semantic-extraction.schema.json").resolve(),
                         prompt, model_output, log, timeout, resume)
+    handoff = semantic_handoff(payload)
+    handoff_output = method_dir / f"{skill_id}-handoff.json"
+    handoff_output.write_text(json.dumps(handoff, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
     inspector_output = method_dir / f"{skill_id}-inspector.json"
-    command = [java, "-jar", str(jar), "verify", str(target), "--requirements", str(model_output), "--json"]
+    command = [java, "-jar", str(jar), "verify", str(target), "--requirements", str(handoff_output), "--json"]
     result = subprocess.run(command, text=True, capture_output=True, env=controlled_environment(), check=False)
     if result.returncode not in ACCEPTED_INSPECTOR_EXITS:
         raise RuntimeError(f"Inspector failed for {skill_id}: {result.stderr.strip() or result.stdout.strip()}")

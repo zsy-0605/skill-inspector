@@ -10,9 +10,10 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
+        "required": ["type", "ecosystem", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
         "properties": {
-          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem"]},
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "ecosystem": {"type": ["string", "null"], "enum": ["python", "npm", "maven", null]},
           "name": {"type": "string"},
           "required": {"type": ["string", "null"]},
           "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},

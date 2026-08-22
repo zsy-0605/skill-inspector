@@ -1,4 +1,4 @@
 interface:
   display_name: "Skill Inspector"
-  short_description: "Preflight compatibility inspection for Agent Skills"
+  short_description: "Preflight runtime, environment, and package checks"
   default_prompt: "Use $skill-inspector to check whether this Agent Skill can run in my current environment."

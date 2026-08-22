@@ -22,12 +22,46 @@ class SemanticRequirementsParserTest {
                 }]}
                 """);
 
-        SkillRequirement requirement = new SemanticRequirementsParser().parse(input).getFirst();
+        Requirement requirement = new SemanticRequirementsParser().parse(input).getFirst();
 
         assertThat(requirement.type()).isEqualTo(RequirementType.COMMAND);
         assertThat(requirement.necessity()).isEqualTo(RequirementNecessity.REQUIRED);
         assertThat(requirement.matched()).contains("<redacted>").doesNotContain("example-sensitive-value");
         assertThat(requirement.inferenceRule()).isEqualTo("agent-semantic-extraction");
+    }
+
+    @Test void parsesPackageEcosystemAsPackageRequirement() throws Exception {
+        Path input = temp.resolve("packages.json");
+        Files.writeString(input, """
+                {"schemaVersion":"1.0","requirements":[{
+                  "type":"package","ecosystem":"python","name":"pypdf","version":">=4",
+                  "necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH",
+                  "evidence":{"file":"SKILL.md:20","matched":"API_TOKEN=example-sensitive-value ghp_1234567890abcdef Use pypdf for extraction",
+                              "inferenceRule":"SEMANTIC_PACKAGE_REFERENCE"}
+                }]}
+                """);
+
+        Requirement requirement = new SemanticRequirementsParser().parse(input).getFirst();
+
+        assertThat(requirement).isInstanceOf(PackageRequirement.class);
+        assertThat(((PackageRequirement) requirement).ecosystem()).isEqualTo(PackageEcosystem.PYTHON);
+        assertThat(requirement.required()).isEqualTo(">=4");
+        assertThat(requirement.matched()).contains("<redacted>").doesNotContain("example-sensitive-value");
+        assertThat(requirement.matched()).doesNotContain("ghp_1234567890abcdef");
+        assertThat(requirement.inferenceRule()).isEqualTo("SEMANTIC_PACKAGE_REFERENCE");
+    }
+
+    @Test void rejectsPackageWithoutEcosystem() throws Exception {
+        Path input = temp.resolve("invalid-package.json");
+        Files.writeString(input, """
+                {"schemaVersion":"1.0","requirements":[{
+                  "type":"package","name":"pypdf","necessity":"REQUIRED","source":"INFERRED",
+                  "confidence":"HIGH","evidence":"SKILL.md:20"
+                }]}
+                """);
+
+        assertThatThrownBy(() -> new SemanticRequirementsParser().parse(input))
+                .isInstanceOf(SkillParseException.class).hasMessageContaining("need ecosystem");
     }
 
     @Test void rejectsRequirementsPresentedAsDeclaredFacts() throws Exception {

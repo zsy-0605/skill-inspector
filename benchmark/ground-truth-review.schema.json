@@ -9,10 +9,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "name", "necessity", "source", "inScope", "evidence", "notes"],
+        "required": ["type", "ecosystem", "name", "version", "necessity", "source", "inScope", "evidence", "notes"],
         "properties": {
           "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "ecosystem": {"type": ["string", "null"], "enum": ["python", "npm", "maven", null]},
           "name": {"type": "string"},
+          "version": {"type": ["string", "null"]},
           "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
           "source": {"type": "string", "enum": ["COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"]},
           "inScope": {"type": "boolean"},

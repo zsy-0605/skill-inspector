@@ -10,7 +10,7 @@ from pathlib import Path
 import sys
 from typing import Any
 
-REVIEWED = {"AI_REVIEWED", "HUMAN_REVIEWED"}
+REVIEWED = {"EVIDENCE_REVIEWED", "HUMAN_REVIEWED"}
 
 
 def load(path: Path) -> dict[str, Any]:
@@ -21,13 +21,14 @@ def percent(numerator: int, denominator: int) -> str:
     return f"{100.0 * numerator / denominator:.1f}%" if denominator else "N/A"
 
 
-def dependency_key(item: dict[str, Any]) -> tuple[str, str]:
+def dependency_key(item: dict[str, Any]) -> tuple[str, str, str]:
     kind, name = item["type"], item["name"].lower()
+    ecosystem = item.get("ecosystem", "").lower()
     if kind == "runtime":
         name = {"python3": "python", "node.js": "node", "nodejs": "node"}.get(name, name)
     if kind == "operatingSystem":
         name = "operating-system"
-    return kind, name
+    return kind, ecosystem, name
 
 
 def readiness(value: str | None) -> str | None:
@@ -49,20 +50,39 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         actual_deps = {dependency_key(item) for item in label.get("dependencies", []) if item.get("inScope")}
         required_deps = {dependency_key(item) for item in label.get("dependencies", [])
                          if item.get("inScope") and item.get("necessity") == "REQUIRED"}
+        package_deps = {dependency_key(item) for item in label.get("dependencies", [])
+                        if item.get("inScope") and item.get("type") == "package"}
+        required_package_deps = {dependency_key(item) for item in label.get("dependencies", [])
+                                 if item.get("inScope") and item.get("type") == "package"
+                                 and item.get("necessity") == "REQUIRED"}
         blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])}
+        package_blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])
+                            if item.get("type") == "package"}
         if skill_id not in predicted:
             missing_predictions.append(skill_id)
             counts["fn"] += len(actual_deps)
             counts["requiredFn"] += len(required_deps)
+            counts["packageFn"] += len(package_deps)
+            counts["requiredPackageFn"] += len(required_package_deps)
+            counts["packageTruth"] += len(package_deps)
+            counts["packageBlockerCases"] += int(bool(package_blockers))
             counts["diagnosisCases"] += int(bool(blockers))
             continue
         item = predicted[skill_id]
         predicted_deps = {dependency_key(dep) for dep in item.get("dependencies", []) if dep.get("inScope", True)}
+        predicted_package_deps = {dependency_key(dep) for dep in item.get("dependencies", [])
+                                  if dep.get("inScope", True) and dep.get("type") == "package"}
         counts["tp"] += len(actual_deps & predicted_deps)
         counts["fp"] += len(predicted_deps - actual_deps)
         counts["fn"] += len(actual_deps - predicted_deps)
         counts["requiredTp"] += len(required_deps & predicted_deps)
         counts["requiredFn"] += len(required_deps - predicted_deps)
+        counts["packageTp"] += len(package_deps & predicted_package_deps)
+        counts["packageFp"] += len(predicted_package_deps - package_deps)
+        counts["packageFn"] += len(package_deps - predicted_package_deps)
+        counts["requiredPackageTp"] += len(required_package_deps & predicted_package_deps)
+        counts["requiredPackageFn"] += len(required_package_deps - predicted_package_deps)
+        counts["packageTruth"] += len(package_deps)
         actual_readiness, predicted_readiness = readiness(label.get("actualReadiness")), readiness(item.get("readiness"))
         if actual_readiness != "UNVERIFIABLE":
             counts["classificationCases"] += 1
@@ -78,6 +98,9 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
             counts["diagnosisComplete"] += int(blockers <= predicted_deps)
             counts["blockerTp"] += len(blockers & predicted_deps)
             counts["blockerFn"] += len(blockers - predicted_deps)
+        if package_blockers:
+            counts["packageBlockerCases"] += 1
+            counts["packageFalseReady"] += int(predicted_readiness == "READY")
     return {"method": prediction.get("method", "UNKNOWN"), "model": prediction.get("model", "UNKNOWN"),
             "run": prediction.get("run"), "reviewed": len(labels),
             "scored": len(labels) - len(missing_predictions), "counts": dict(counts),
@@ -108,12 +131,17 @@ def aggregate(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
                        "blockingDependencyRecall": percent(counts["blockerTp"], counts["blockerTp"] + counts["blockerFn"]),
                        "falseReady": percent(counts["falseReady"], counts["notReadyOrWarning"]),
                        "falseBlock": percent(counts["falseBlock"], counts["ready"]),
+                       "packageN": counts["packageTruth"] // len(runs),
+                       "packageRecall": percent(counts["packageTp"], counts["packageTp"] + counts["packageFn"]),
+                       "packagePrecision": percent(counts["packageTp"], counts["packageTp"] + counts["packageFp"]),
+                       "requiredPackageRecall": percent(counts["requiredPackageTp"], counts["requiredPackageTp"] + counts["requiredPackageFn"]),
+                       "packageFalseReady": percent(counts["packageFalseReady"], counts["packageBlockerCases"]),
                        "counts": dict(counts)})
     return output
 
 
 def render(scores: list[dict[str, Any]], truth: dict[str, Any]) -> str:
-    provenance = "human-reviewed" if all(skill.get("reviewStatus") == "HUMAN_REVIEWED" for skill in truth["skills"]) else "AI-assisted; human signoff pending"
+    provenance = "human-reviewed" if all(skill.get("reviewStatus") == "HUMAN_REVIEWED" for skill in truth["skills"]) else "review in progress"
     total_trials = sum(item["runs"] * item["reviewedPerRun"] for item in scores)
     lines = ["# Controlled benchmark comparison", "", f"Dataset: `{truth.get('datasetVersion', 'UNKNOWN')}`",
              f"Environment: `{truth.get('environment', 'UNKNOWN')}`",
@@ -122,13 +150,18 @@ def render(scores: list[dict[str, Any]], truth: dict[str, Any]) -> str:
              "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for item in scores:
         lines.append(f"| {item['method']} | {item['model']} | {item['runs']} | {item['reviewedPerRun']} | {item['coverage']} | {item['recall']} | {item['precision']} | {item['requiredRecall']} | {item['classificationAccuracy']} | {item['diagnosisCompleteness']} | {item['blockingDependencyRecall']} | {item['falseReady']} | {item['falseBlock']} |")
+    lines += ["", "## Package metrics", "",
+              "| Method | Package N | Package recall | Package precision | Required package recall | Package false ready |",
+              "|---|---:|---:|---:|---:|---:|"]
+    for item in scores:
+        lines.append(f"| {item['method']} | {item['packageN']} | {item['packageRecall']} | {item['packagePrecision']} | {item['requiredPackageRecall']} | {item['packageFalseReady']} |")
     lines += ["", "Metrics are pooled across repeated runs. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.", "",
               "## Interpretation", "",
               "The hybrid method improved dependency coverage and sharply reduced false-ready decisions by turning Agent-extracted requirements into deterministic environment checks. It did not eliminate false blocks; semantic over-classification can still send an incorrect required dependency to Java.", "",
               "## Limitations", "",
-              "- Ground truth is AI-assisted with deterministic evidence/path validation; independent human signoff is pending.",
+              "- Ground truth dependencies, evidence paths, necessity, and environment conclusions were human-reviewed.",
               "- The corpus contains 30 pinned Skills from six repositories, one model, and one controlled Linux environment.",
-              "- Package/library dependencies are recorded but excluded from V0.1 scoring.",
+              "- Package metrics cover Python and npm dependencies in this corpus; Maven has N=0 and is reported without extrapolation.",
               "- Raw model outputs are retained locally but not redistributed in the public repository.", ""]
     return "\n".join(lines)
 

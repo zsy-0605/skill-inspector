@@ -48,7 +48,7 @@ class BenchmarkRunnerTest(unittest.TestCase):
 
     def test_scoring_counts_dependency_and_readiness_errors(self):
         truth = {"datasetVersion": "v1", "skills": [{
-            "id": "sample", "reviewStatus": "AI_REVIEWED", "actualReadiness": "NOT_READY",
+            "id": "sample", "reviewStatus": "EVIDENCE_REVIEWED", "actualReadiness": "NOT_READY",
             "blockingDependencies": [{"type": "command", "name": "git"}],
             "dependencies": [{"type": "command", "name": "git", "necessity": "REQUIRED", "inScope": True, "evidence": "SKILL.md:1"}]
         }]}
@@ -68,11 +68,33 @@ class BenchmarkRunnerTest(unittest.TestCase):
     def test_ground_truth_keeps_source_necessity_and_human_signoff_separate(self):
         truth = json.loads((PROJECT / "benchmark/annotations/ground-truth.json").read_text(encoding="utf-8"))
         self.assertEqual(30, len(truth["skills"]))
-        self.assertTrue(all(skill["reviewStatus"] == "AI_REVIEWED" for skill in truth["skills"]))
-        self.assertTrue(all(skill["review"]["humanSignoff"] is False for skill in truth["skills"]))
+        self.assertTrue(all(skill["reviewStatus"] == "HUMAN_REVIEWED" for skill in truth["skills"]))
+        self.assertTrue(all(skill["review"]["humanSignoff"] is True for skill in truth["skills"]))
         dependencies = [item for skill in truth["skills"] for item in skill["dependencies"]]
         self.assertTrue(all(item["necessity"] in {"REQUIRED", "OPTIONAL", "CONDITIONAL"} for item in dependencies))
         self.assertTrue(all(item["source"] in {"COMPATIBILITY_METADATA", "SKILL_TEXT", "SCRIPT", "REFERENCE", "MANIFEST"} for item in dependencies))
+        packages = [item for item in dependencies if item["type"] == "package"]
+        self.assertGreater(len(packages), 0)
+        self.assertTrue(all(item["ecosystem"] in {"python", "npm", "maven"} for item in packages))
+        self.assertTrue(all("required" in item for item in packages))
+        self.assertTrue(all(item["version"] == item["required"] for item in packages))
+
+    def test_scoring_reports_package_recall_and_package_false_ready(self):
+        truth = {"datasetVersion": "v2", "skills": [{
+            "id": "packages", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "NOT_READY",
+            "blockingDependencies": [{"type": "package", "ecosystem": "python", "name": "pypdf"}],
+            "dependencies": [{"type": "package", "ecosystem": "python", "name": "pypdf",
+                              "necessity": "REQUIRED", "inScope": True, "evidence": "SKILL.md:1"}]
+        }]}
+        prediction = {"datasetVersion": "v2", "method": "AGENT_ONLY", "model": "test", "run": 1,
+                      "skills": [{"id": "packages", "readiness": "READY", "dependencies": []}]}
+
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
+
+        self.assertEqual(1, result["packageN"])
+        self.assertEqual("0.0%", result["packageRecall"])
+        self.assertEqual("0.0%", result["requiredPackageRecall"])
+        self.assertEqual("100.0%", result["packageFalseReady"])
 
     def test_controlled_environment_does_not_forward_dependency_secrets(self):
         old = __import__("os").environ.get("OPENAI_API_KEY")
@@ -81,6 +103,7 @@ class BenchmarkRunnerTest(unittest.TestCase):
             environment = controlled.controlled_environment()
             self.assertNotIn("OPENAI_API_KEY", environment)
             self.assertEqual("/usr/bin:/bin", environment["PATH"])
+            self.assertEqual("isolated", environment["SKILL_INSPECTOR_PACKAGE_METADATA_MODE"])
         finally:
             if old is None:
                 __import__("os").environ.pop("OPENAI_API_KEY", None)
@@ -98,6 +121,19 @@ class BenchmarkRunnerTest(unittest.TestCase):
                 controlled.run_codex("unused", "model-a", root,
                                      PROJECT / "benchmark/semantic-extraction.schema.json",
                                      "fixed prompt", output, root / "sample.log", 1, True)
+
+    def test_semantic_handoff_removes_ecosystem_from_non_packages_only(self):
+        payload = {"schemaVersion": "1.0", "requirements": [
+            {"type": "runtime", "ecosystem": "python", "name": "python", "matched": None},
+            {"type": "package", "ecosystem": "python", "name": "pypdf"}
+        ]}
+
+        handoff = controlled.semantic_handoff(payload)
+
+        self.assertNotIn("ecosystem", handoff["requirements"][0])
+        self.assertNotIn("matched", handoff["requirements"][0])
+        self.assertEqual("python", handoff["requirements"][1]["ecosystem"])
+        self.assertIn("ecosystem", payload["requirements"][0])
 
 
 if __name__ == "__main__":

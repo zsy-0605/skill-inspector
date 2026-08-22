@@ -20,7 +20,8 @@ public final class InspectionService {
     public InspectionService(SkillParser parser, EnvironmentProbe environment) {
         this.parser = parser;
         this.environment = environment;
-        this.checkers = List.of(new RuntimeChecker(), new CommandChecker(), new EnvironmentVariableChecker(), new FileChecker(), new OperatingSystemChecker());
+        this.checkers = List.of(new RuntimeChecker(), new CommandChecker(), new EnvironmentVariableChecker(),
+                new FileChecker(), new OperatingSystemChecker(), new PackageChecker());
     }
 
     public InspectionReport inspect(Path target) {
@@ -28,14 +29,14 @@ public final class InspectionService {
         return inspect(skill, skill.requirements());
     }
 
-    public InspectionReport verify(Path target, List<SkillRequirement> semanticRequirements) {
+    public InspectionReport verify(Path target, List<Requirement> semanticRequirements) {
         SkillDefinition skill = parser.parse(target);
         return inspect(skill, merge(skill.requirements(), semanticRequirements));
     }
 
-    private InspectionReport inspect(SkillDefinition skill, List<SkillRequirement> requirements) {
+    private InspectionReport inspect(SkillDefinition skill, List<Requirement> requirements) {
         List<CheckResult> results = new ArrayList<>();
-        for (SkillRequirement requirement : requirements) {
+        for (Requirement requirement : requirements) {
             RequirementChecker checker = checkers.stream().filter(item -> item.supports(requirement.type())).findFirst()
                     .orElseThrow(() -> new IllegalStateException("No checker for " + requirement.type()));
             results.add(checker.check(requirement, skill.root(), environment));
@@ -45,22 +46,23 @@ public final class InspectionService {
         return new InspectionReport("1.0", skill.name(), skill.root().toString(), overall, score(results), readiness(overall), List.copyOf(results), issues);
     }
 
-    private List<SkillRequirement> merge(List<SkillRequirement> discovered, List<SkillRequirement> semantic) {
-        Map<String, SkillRequirement> merged = new LinkedHashMap<>();
-        for (SkillRequirement item : discovered) merged.put(key(item), item);
-        for (SkillRequirement item : semantic) merged.merge(key(item), item, this::prefer);
+    private List<Requirement> merge(List<Requirement> discovered, List<Requirement> semantic) {
+        Map<String, Requirement> merged = new LinkedHashMap<>();
+        for (Requirement item : discovered) merged.put(key(item), item);
+        for (Requirement item : semantic) merged.merge(key(item), item, this::prefer);
         return List.copyOf(merged.values());
     }
 
-    private SkillRequirement prefer(SkillRequirement left, SkillRequirement right) {
+    private Requirement prefer(Requirement left, Requirement right) {
         if (left.source() != right.source()) return left.source() == RequirementSource.DECLARED ? left : right;
         int necessity = Integer.compare(rank(right.necessity()), rank(left.necessity()));
         if (necessity != 0) return necessity > 0 ? right : left;
         return confidence(right.confidence()) > confidence(left.confidence()) ? right : left;
     }
 
-    private String key(SkillRequirement item) {
-        return item.type() + "\u0000" + item.name().toLowerCase(Locale.ROOT);
+    private String key(Requirement item) {
+        String ecosystem = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue() : "";
+        return item.type() + "\u0000" + ecosystem + "\u0000" + item.name().toLowerCase(Locale.ROOT);
     }
 
     private int rank(RequirementNecessity necessity) {

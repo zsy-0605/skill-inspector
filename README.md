@@ -32,7 +32,8 @@ Skill Inspector 是一个 **Agent Skill**，用于在安装、启用、执行、
              Java 确定性检查器
           ├── 运行时及版本
           ├── 命令与环境变量
-          └── 文件、目录与操作系统
+          ├── 文件、目录与操作系统
+          └── Python / npm / Maven 包
                     │
                     v
            READY / WARNING / NOT READY
@@ -66,6 +67,24 @@ Agent 负责理解说明和证据，Java 负责验证真实机器环境。`SKILL
 **每一个推断依赖都应该可解释。** 推断结果包含证据位置、经过长度限制和脱敏处理的匹配行、确定性推断规则以及置信度。线索不会被包装成已声明事实。
 
 检查不等于执行。Skill Inspector 不运行目标脚本、不导入目标代码、不安装依赖、不修改目标 Skill，也不输出环境变量的值。运行时检查只会执行检查器固定允许的命令：`java --version`、`python3 --version`（找不到时回退到 `python --version`）和 `node --version`。
+
+```text
+Skill: pdf-processing
+
+Runtime
+✓ Python 3.12
+
+Packages
+✓ pypdf 5.1 [python]
+✗ pdfplumber [python] NOT FOUND
+
+Commands
+✓ pdftotext
+
+Result: NOT READY
+```
+
+V0.2 会静态读取根目录的 `requirements.txt`、`pyproject.toml`、`package.json` 和 `pom.xml`，并只读检查本地 Python 包元数据、`node_modules` 与 Maven 本地仓库。它不会 import/require 包、运行 npm lifecycle script、调用包管理器安装依赖或查询远程 Registry。不支持的版本表达式返回 `UNKNOWN`。
 
 ### 环境要求与构建
 
@@ -145,13 +164,24 @@ python3 scripts/run-controlled-benchmark.py \
 
 混合方法还将 False Block 从 50.0% 降低到 33.3%，但尚未完全消除。项目维护者已对 30 个 Skill 的依赖、证据、必要性和环境结论完成人工复核。以上结果仍然只是固定数据集、单一模型和单一 Linux 环境下的受控实验结果，不代表整个 Agent Skill 生态的普遍准确率。在 Skill Inspector 当前支持的机器可读依赖定义下，这 30 个 Skill 均未声明受支持格式的结构化运行时契约。
 
-详细信息请参阅[基准测试协议](benchmark/README.md)、[固定数据集](benchmark/dataset.json)、[受控环境](benchmark/environment.json)和[完整对比结果](benchmark/results/controlled-2026-08-21.md)。
+V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环境上加入了 147 个 Python/npm 包依赖标签（Maven `N=0`）：
 
-### V0.1 支持范围
+| 方法 | 总体召回率 | 精确率 | 必需依赖召回率 | False Ready | Package Recall | Package Precision | Required Package Recall |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 仅 Agent | 46.7% | 78.2% | 61.9% | 16.7% | 44.4% | 83.8% | 100.0% |
+| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **4.4%** | **75.7%** | **94.1%** | **100.0%** |
+
+两种 V0.2 条件的 Package False Ready 都是 0%；本轮 package 层面的主要提升是发现覆盖率，而不是该指标。由于 V0.2 增加了 package 标签和 4 个 package blocker，V0.1.1 与 V0.2 的分母并不完全相同。混合方法的 Required Recall、Blocker Recall 和 Diagnosis Completeness 仍为 100%，但总体 False Ready 从 V0.1.1 的 1.2% 上升到 4.4%，没有人为调整结果。
+
+详细信息请参阅[基准测试协议](benchmark/README.md)、[固定数据集](benchmark/dataset.json)、[受控环境](benchmark/environment.json)、[V0.1.1 完整结果](benchmark/results/controlled-2026-08-21.md)和 [V0.2 完整结果](benchmark/results/controlled-v0.2.0-rc1.md)。
+
+### 当前支持范围
 
 已支持：
 
 - Java、Python 和 Node 的存在性及版本约束
+- Python、npm 和 Maven 包依赖及常见版本约束的本地只读验证
+- `requirements.txt`、`pyproject.toml`、`package.json` 和 `pom.xml` 的结构化依赖解析
 - 基于 PATH/PATHEXT 的跨平台命令发现，不依赖 `which`
 - 环境变量存在性检查，且强制脱敏
 - 以目标 Skill 为基准的必需文件和目录检查
@@ -163,7 +193,7 @@ python3 scripts/run-controlled-benchmark.py \
 
 暂不支持：
 
-- MCP、Agent Tool、网络、权限、包管理器或 Skill-to-Skill 能力检查
+- MCP、Agent Tool、网络、权限、远程包 Registry 或 Skill-to-Skill 能力检查
 - 由 Java 进行通用自然语言依赖提取；语义理解由 Agent 负责
 - 自动安装、自动修复或修改目标 Skill
 - 恶意代码、提示词注入、漏洞、病毒或供应链扫描
@@ -177,7 +207,7 @@ python3 scripts/run-controlled-benchmark.py \
 
 - **V0.1：** 本地兼容性检查——已完成。
 - **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
-- **V0.2：** 更丰富的语义契约以及包/能力验证。
+- **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0-rc1`。
 - **V0.3：** MCP 与 Agent Tool Runtime Adapter。
 - **V0.4：** Skill-to-Skill 依赖。
 
@@ -215,7 +245,8 @@ User: “Can I run this Skill?”
         Java deterministic checker
        ├── runtimes and versions
        ├── commands and environment
-       └── files, directories, OS
+       ├── files, directories, OS
+       └── Python / npm / Maven packages
                  │
                  v
         READY / WARNING / NOT READY
@@ -249,6 +280,24 @@ The Agent understands instructions and evidence. Java verifies the actual machin
 **Every inferred dependency should be explainable.** Inferred checks include an evidence location, a bounded and redacted matched line, a deterministic inference rule, and confidence. A clue is never presented as a declaration.
 
 Inspection is not execution. Skill Inspector never runs target scripts, imports target code, installs dependencies, changes the target, or prints environment-variable values. Runtime checks execute only the inspector's fixed allowlist: `java --version`, `python3 --version` (falling back to `python --version`), and `node --version`.
+
+```text
+Skill: pdf-processing
+
+Runtime
+✓ Python 3.12
+
+Packages
+✓ pypdf 5.1 [python]
+✗ pdfplumber [python] NOT FOUND
+
+Commands
+✓ pdftotext
+
+Result: NOT READY
+```
+
+V0.2 statically reads root-level `requirements.txt`, `pyproject.toml`, `package.json`, and `pom.xml`, then checks local Python distribution metadata, `node_modules`, and the local Maven repository in read-only mode. It never imports/requires a package, runs an npm lifecycle script, invokes a package manager to install dependencies, or queries a remote registry. Unsupported version expressions return `UNKNOWN`.
 
 ### Requirements and build
 
@@ -328,13 +377,24 @@ python3 scripts/run-controlled-benchmark.py \
 
 The hybrid method also reduced false blocks from 50.0% to 33.3%, but did not eliminate them. The project maintainer manually reviewed the dependencies, evidence, necessity, and environment conclusions for all 30 Skills. These results remain a controlled experiment on a fixed dataset, one model, and one Linux environment; they are not an ecosystem-wide accuracy claim. Within this benchmark and Skill Inspector's machine-readable dependency definition, none of the 30 pinned Skills declared a structured runtime contract in the supported schema.
 
-See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), and [full comparison](benchmark/results/controlled-2026-08-21.md).
+V0.2 adds 147 Python/npm package labels to the same 30 pinned Skills, model, three-run protocol, and base Linux environment (Maven `N=0`):
 
-### V0.1 scope
+| Method | Overall recall | Precision | Required recall | False ready | Package recall | Package precision | Required package recall |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Agent only | 46.7% | 78.2% | 61.9% | 16.7% | 44.4% | 83.8% | 100.0% |
+| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **4.4%** | **75.7%** | **94.1%** | **100.0%** |
+
+Package false ready was 0% for both V0.2 conditions; the demonstrated package-level gain is discovery coverage, not that metric. Because V0.2 adds package labels and four package blockers, V0.1.1 and V0.2 do not have identical denominators. The hybrid method retained 100% required recall, blocker recall, and diagnosis completeness, while overall false ready increased from 1.2% in V0.1.1 to 4.4%; the result is reported without adjustment.
+
+See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), [V0.1.1 results](benchmark/results/controlled-2026-08-21.md), and [V0.2 results](benchmark/results/controlled-v0.2.0-rc1.md).
+
+### Current scope
 
 Supported:
 
 - Java, Python, and Node presence/version constraints
+- Read-only local verification of Python, npm, and Maven packages with common version constraints
+- Structured dependency parsing for `requirements.txt`, `pyproject.toml`, `package.json`, and `pom.xml`
 - Portable command discovery using PATH/PATHEXT, without assuming `which`
 - Environment-variable presence with mandatory redaction
 - Required files and directories, relative to the target Skill
@@ -346,7 +406,7 @@ Supported:
 
 Not supported:
 
-- MCP, Agent Tool, network, permission, package-manager, or Skill-to-Skill capability checks
+- MCP, Agent Tool, network, permission, remote package registry, or Skill-to-Skill capability checks
 - General natural-language dependency extraction in Java; the Agent handles semantic interpretation
 - Automatic installation, remediation, or target modification
 - Malware, prompt-injection, vulnerability, virus, or supply-chain scanning
@@ -360,7 +420,7 @@ The package structure separates `parse`, `model`, `check`, `core`, `report`, and
 
 - **V0.1:** Local compatibility inspection — complete.
 - **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
-- **V0.2:** Richer semantic contracts and package/capability verification.
+- **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0-rc1`.
 - **V0.3:** MCP and Agent Tool runtime adapters.
 - **V0.4:** Skill-to-Skill dependencies.
 

@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""Create reviewable AI-assisted ground-truth drafts from pinned Skill snapshots."""
+"""Create reviewable ground-truth drafts from pinned Skill snapshots."""
 
 from __future__ import annotations
 
@@ -58,7 +58,7 @@ def review_one(codex: str, model: str, prompt: str, schema: Path, target: Path,
 
 
 def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path) -> list[dict[str, Any]]:
-    normalized: dict[tuple[str, str], dict[str, Any]] = {}
+    normalized: dict[tuple[str, str, str], dict[str, Any]] = {}
     os_values: list[str] = []
     necessity_rank = {"OPTIONAL": 1, "CONDITIONAL": 2, "REQUIRED": 3}
     for raw in payload.get("requirements", []):
@@ -81,6 +81,11 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
             continue
         elif kind == "package" and lowered in STANDARD_LIBRARY_PACKAGES:
             continue
+        elif kind == "package":
+            if item.get("ecosystem") not in {"python", "npm", "maven"}:
+                raise ValueError(f"Package requirement needs a supported ecosystem: {skill_id}/{name}")
+            item["version"] = item.get("version") or item.get("required") or "*"
+            item["required"] = item["version"]
         elif kind == "operatingSystem":
             name = lowered
             if name not in SUPPORTED_OPERATING_SYSTEMS:
@@ -96,8 +101,11 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
             if candidate.is_absolute() and str(candidate).startswith("/tmp"):
                 continue
         item["name"] = name
+        if kind != "package":
+            item.pop("ecosystem", None)
+            item.pop("version", None)
         item["necessity"] = NECESSITY_OVERRIDES.get((skill_id, kind, name), item["necessity"])
-        key = (kind, name.lower())
+        key = (kind, str(item.get("ecosystem", "")), name.lower())
         previous = normalized.get(key)
         if previous is None or necessity_rank[item["necessity"]] > necessity_rank[previous["necessity"]]:
             normalized[key] = item
@@ -157,16 +165,16 @@ def main() -> int:
     skills = []
     for skill_id, target, _ in work:
         draft = completed[skill_id]
-        skills.append({"id": skill_id, "reviewStatus": "AI_DRAFT", "actualReadiness": None,
+        skills.append({"id": skill_id, "reviewStatus": "DRAFT", "actualReadiness": None,
                        "blockingDependencies": [],
                        "dependencies": normalize_requirements(skill_id, draft, target), "notes": draft.get("notes", ""),
-                       "review": {"method": "AI-assisted static review; human signoff pending",
+                       "review": {"method": "static review; human signoff pending",
                                   "model": args.model, "reviewedAt": timestamp, "humanSignoff": False}})
     payload = {
         "schemaVersion": "1.1", "datasetVersion": dataset["datasetVersion"],
         "environment": "Readiness is assigned separately under benchmark/environment.json.",
-        "scope": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem"],
-        "reviewPolicy": "AI-assisted static review; dependencies require evidence and keep necessity separate from source. AI_REVIEWED requires deterministic evidence and environment validation. Human signoff is never implied.",
+        "scope": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"],
+        "reviewPolicy": "static review; dependencies require evidence and keep necessity separate from source. EVIDENCE_REVIEWED requires deterministic evidence and environment validation. Human signoff is never implied.",
         "skills": skills,
     }
     args.output.parent.mkdir(parents=True, exist_ok=True)

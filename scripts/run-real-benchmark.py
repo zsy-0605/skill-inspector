@@ -17,7 +17,7 @@ from typing import Any
 COMMIT_RE = re.compile(r"^[0-9a-f]{40}$")
 GITHUB_RE = re.compile(r"^https://github\.com/[A-Za-z0-9_.-]+/[A-Za-z0-9_.-]+\.git$")
 ACCEPTED_INSPECTOR_EXITS = {0, 2}
-REVIEWED_STATUSES = {"AI_REVIEWED", "HUMAN_REVIEWED"}
+REVIEWED_STATUSES = {"EVIDENCE_REVIEWED", "HUMAN_REVIEWED"}
 
 
 def run(command: list[str], cwd: Path | None = None, env: dict[str, str] | None = None,

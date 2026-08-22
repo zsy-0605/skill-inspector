@@ -9,5 +9,6 @@
     "node": null
   },
   "environmentVariables": "All benchmarked dependency variables are removed from the controlled process environment.",
-  "notes": "Codex and the Java inspector receive the same sanitized environment. Network is used only for Codex model access; target code is never executed."
+  "packageMetadataPolicy": "isolated: only package metadata stored inside the pinned target Skill is visible; user/system package stores are excluded.",
+  "notes": "Codex and the Java inspector receive the same sanitized environment. Network is used only for model access; target code is never executed and package registries are never queried."
 }

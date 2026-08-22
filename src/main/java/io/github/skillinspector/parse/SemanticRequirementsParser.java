@@ -1,6 +1,7 @@
 package io.github.skillinspector.parse;
 
 import com.fasterxml.jackson.databind.DeserializationFeature;
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import io.github.skillinspector.model.*;
 
@@ -9,6 +10,7 @@ import java.nio.file.Files;
 import java.nio.file.LinkOption;
 import java.nio.file.Path;
 import java.util.List;
+import java.util.Set;
 import java.util.regex.Pattern;
 
 public final class SemanticRequirementsParser {
@@ -18,10 +20,12 @@ public final class SemanticRequirementsParser {
     private static final int MAX_REQUIREMENTS = 1000;
     private static final Pattern SENSITIVE_LITERAL = Pattern.compile(
             "(?i)([A-Z0-9_]*(?:TOKEN|SECRET|PASSWORD|PASSWD|API_KEY)[A-Z0-9_]*\\s*=\\s*)(\\\"[^\\\"]*\\\"|'[^']*'|[^\\s]+)");
+    private static final Pattern SENSITIVE_TOKEN = Pattern.compile(
+            "(?i)\\b(?:bearer\\s+)?(?:sk-|gh[opusr]_|xox[baprs]-)[A-Za-z0-9._-]{8,}");
     private final ObjectMapper mapper = new ObjectMapper()
             .enable(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES);
 
-    public List<SkillRequirement> parse(Path input) {
+    public List<Requirement> parse(Path input) {
         Path normalized = input.toAbsolutePath().normalize();
         try {
             if (!Files.isRegularFile(normalized, LinkOption.NOFOLLOW_LINKS) || Files.isSymbolicLink(normalized))
@@ -45,7 +49,7 @@ public final class SemanticRequirementsParser {
         }
     }
 
-    private SkillRequirement toRequirement(Entry entry) {
+    private Requirement toRequirement(Entry entry) {
         if (entry == null)
             throw new SkillParseException("Requirements entries must be JSON objects");
         if (entry.type() == null || entry.name() == null || entry.name().isBlank())
@@ -54,23 +58,60 @@ public final class SemanticRequirementsParser {
             throw new SkillParseException("Semantic requirement name exceeds " + MAX_TEXT_LENGTH + " characters");
         if (entry.source() != RequirementSource.INFERRED)
             throw new SkillParseException("Semantic requirements must use source INFERRED");
-        if (entry.necessity() == null || entry.confidence() == null || entry.evidence() == null || entry.evidence().isBlank())
+        if (entry.type() == RequirementType.PACKAGE && entry.ecosystem() == null)
+            throw new SkillParseException("Package requirements need ecosystem python, npm, or maven");
+        if (entry.type() != RequirementType.PACKAGE && entry.ecosystem() != null)
+            throw new SkillParseException("ecosystem is only valid for package requirements");
+        Evidence evidenceInput = evidence(entry);
+        if (entry.necessity() == null || entry.confidence() == null || evidenceInput.file() == null || evidenceInput.file().isBlank())
             throw new SkillParseException("Each semantic requirement needs necessity, confidence, and evidence");
-        String required = entry.required();
+        if (entry.type() == RequirementType.PACKAGE && entry.version() != null && entry.required() != null
+                && !entry.version().equals(entry.required()))
+            throw new SkillParseException("Package version and required constraints must match when both are present");
+        String required = entry.type() == RequirementType.PACKAGE && entry.version() != null ? entry.version() : entry.required();
         if (required == null || required.isBlank())
-            required = entry.type() == RequirementType.RUNTIME ? "*" : "present";
+            required = entry.type() == RequirementType.RUNTIME || entry.type() == RequirementType.PACKAGE ? "*" : "present";
         if (required.length() > MAX_TEXT_LENGTH)
             throw new SkillParseException("Semantic requirement constraint exceeds " + MAX_TEXT_LENGTH + " characters");
-        String evidence = bounded(entry.evidence().strip(), MAX_TEXT_LENGTH);
-        String matched = entry.matched() == null ? null : sanitizeMatched(entry.matched());
-        String rule = entry.inferenceRule() == null || entry.inferenceRule().isBlank()
-                ? "agent-semantic-extraction" : bounded(entry.inferenceRule().strip(), MAX_TEXT_LENGTH);
+        String evidence = bounded(evidenceInput.file().strip(), MAX_TEXT_LENGTH);
+        String rawMatched = entry.matched() != null ? entry.matched() : evidenceInput.matched();
+        String matched = rawMatched == null ? null : sanitizeMatched(rawMatched);
+        String rawRule = entry.inferenceRule() != null ? entry.inferenceRule() : evidenceInput.inferenceRule();
+        String rule = rawRule == null || rawRule.isBlank()
+                ? "agent-semantic-extraction" : bounded(rawRule.strip(), MAX_TEXT_LENGTH);
+        if (entry.type() == RequirementType.PACKAGE)
+            return PackageRequirement.inferred(entry.ecosystem(), entry.name().strip(), required.strip(), entry.necessity(),
+                    entry.confidence(), evidence, matched, rule);
         return SkillRequirement.inferred(entry.type(), entry.name().strip(), required.strip(), entry.necessity(),
-                entry.confidence(), evidence, matched, rule);
+                    entry.confidence(), evidence, matched, rule);
+    }
+
+    private Evidence evidence(Entry entry) {
+        JsonNode value = entry.evidence();
+        if (value == null || value.isNull()) return new Evidence(null, null, null);
+        if (value.isTextual()) return new Evidence(value.asText(), null, null);
+        if (!value.isObject()) throw new SkillParseException("evidence must be a string or object");
+        ensureEvidenceFields(value);
+        return new Evidence(text(value, "file"), text(value, "matched"), text(value, "inferenceRule"));
+    }
+
+    private void ensureEvidenceFields(JsonNode value) {
+        value.fieldNames().forEachRemaining(name -> {
+            if (!Set.of("file", "matched", "inferenceRule").contains(name))
+                throw new SkillParseException("Unknown evidence field: " + name);
+        });
+    }
+
+    private String text(JsonNode object, String field) {
+        JsonNode value = object.get(field);
+        if (value == null || value.isNull()) return null;
+        if (!value.isTextual()) throw new SkillParseException("evidence." + field + " must be a string");
+        return value.asText();
     }
 
     private String sanitizeMatched(String raw) {
-        return bounded(SENSITIVE_LITERAL.matcher(raw.strip()).replaceAll("$1<redacted>"), MAX_MATCHED_LENGTH);
+        String assignments = SENSITIVE_LITERAL.matcher(raw.strip()).replaceAll("$1<redacted>");
+        return bounded(SENSITIVE_TOKEN.matcher(assignments).replaceAll("<redacted>"), MAX_MATCHED_LENGTH);
     }
 
     private String bounded(String value, int limit) {
@@ -78,7 +119,8 @@ public final class SemanticRequirementsParser {
     }
 
     private record Handoff(String schemaVersion, List<Entry> requirements) {}
-    private record Entry(RequirementType type, String name, String required, RequirementNecessity necessity,
-                         RequirementSource source, Confidence confidence, String evidence,
+    private record Entry(RequirementType type, PackageEcosystem ecosystem, String name, String required, String version,
+                         RequirementNecessity necessity, RequirementSource source, Confidence confidence, JsonNode evidence,
                          String matched, String inferenceRule) {}
+    private record Evidence(String file, String matched, String inferenceRule) {}
 }

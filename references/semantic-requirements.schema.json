@@ -13,16 +13,39 @@
         "additionalProperties": false,
         "required": ["type", "name", "necessity", "source", "confidence", "evidence"],
         "properties": {
-          "type": {"enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem"]},
+          "type": {"enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "ecosystem": {"enum": ["python", "npm", "maven"], "description": "Required only when type is package."},
           "name": {"type": "string", "minLength": 1, "maxLength": 500, "description": "Canonical dependency name; use operating-system for operatingSystem."},
-          "required": {"type": "string", "description": "Runtime version constraint, comma-separated supported OS values, or present. Defaults to * for runtimes and present otherwise."},
+          "required": {"type": "string", "maxLength": 500, "description": "Backward-compatible constraint field. Defaults to * for runtimes/packages and present otherwise."},
+          "version": {"type": "string", "maxLength": 500, "description": "Package version constraint; alias of required for package entries."},
           "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
           "source": {"type": "string", "const": "INFERRED"},
           "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
-          "evidence": {"type": "string", "minLength": 1, "maxLength": 500},
-          "matched": {"type": "string"},
-          "inferenceRule": {"type": "string"}
-        }
+          "evidence": {
+            "oneOf": [
+              {"type": "string", "minLength": 1, "maxLength": 500},
+              {
+                "type": "object",
+                "additionalProperties": false,
+                "required": ["file"],
+                "properties": {
+                  "file": {"type": "string", "minLength": 1, "maxLength": 500},
+                  "matched": {"type": "string", "maxLength": 240},
+                  "inferenceRule": {"type": "string", "maxLength": 500}
+                }
+              }
+            ]
+          },
+          "matched": {"type": "string", "maxLength": 240},
+          "inferenceRule": {"type": "string", "maxLength": 500}
+        },
+        "allOf": [
+          {
+            "if": {"properties": {"type": {"const": "package"}}, "required": ["type"]},
+            "then": {"required": ["ecosystem"]},
+            "else": {"not": {"required": ["ecosystem"]}}
+          }
+        ]
       }
     }
   }

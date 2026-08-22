@@ -3,7 +3,7 @@ package io.github.skillinspector.model;
 public record SkillRequirement(
         RequirementType type, String name, String required, RequirementNecessity necessity,
         RequirementSource source, Confidence confidence, String evidence,
-        String matched, String inferenceRule) {
+        String matched, String inferenceRule) implements Requirement {
     public static SkillRequirement declared(RequirementType type, String name, String required, boolean optional) {
         return new SkillRequirement(type, name, required,
                 optional ? RequirementNecessity.OPTIONAL : RequirementNecessity.REQUIRED, RequirementSource.DECLARED, null,

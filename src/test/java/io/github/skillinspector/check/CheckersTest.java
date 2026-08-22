@@ -37,13 +37,40 @@ class CheckersTest {
         assertThat(new OperatingSystemChecker().check(SkillRequirement.declared(RequirementType.OPERATING_SYSTEM, "operating-system", "linux,macos", false), root, probe).status()).isEqualTo(CheckStatus.PASS);
     }
 
+    @Test void packageCheckerPassesFailsWarnsAndPreservesUnknown() {
+        FakeProbe probe = new FakeProbe();
+        PackageRequirement required = PackageRequirement.declared(PackageEcosystem.PYTHON, "pypdf", ">=4",
+                RequirementNecessity.REQUIRED, "requirements.txt:1");
+        probe.packageInstallation = PackageInstallation.found("5.1.0");
+        assertThat(new PackageChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.PASS);
+        probe.packageInstallation = PackageInstallation.found("3.0.0");
+        assertThat(new PackageChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.FAIL);
+        probe.packageInstallation = PackageInstallation.notFound();
+        assertThat(new PackageChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.FAIL);
+        PackageRequirement optional = PackageRequirement.declared(PackageEcosystem.NPM, "sharp", "^0.33",
+                RequirementNecessity.OPTIONAL, "package.json#/optionalDependencies/sharp");
+        assertThat(new PackageChecker().check(optional, root, probe).status()).isEqualTo(CheckStatus.WARNING);
+        probe.packageInstallation = PackageInstallation.unknown();
+        assertThat(new PackageChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.UNKNOWN);
+    }
+
+    @Test void unsupportedPackageConstraintIsUnknownRatherThanPass() {
+        FakeProbe probe = new FakeProbe();
+        probe.packageInstallation = PackageInstallation.found("1.0.0");
+        PackageRequirement requirement = PackageRequirement.declared(PackageEcosystem.NPM, "demo", "workspace:*",
+                RequirementNecessity.REQUIRED, "package.json#/dependencies/demo");
+        assertThat(new PackageChecker().check(requirement, root, probe).status()).isEqualTo(CheckStatus.UNKNOWN);
+    }
+
     private static final class FakeProbe implements EnvironmentProbe {
         boolean command, env, file, directory; String os = "linux"; Optional<String> runtime = Optional.of("21.0.4");
+        PackageInstallation packageInstallation = PackageInstallation.unknown();
         public String operatingSystem() { return os; }
         public boolean commandExists(String name) { return command; }
         public boolean environmentVariablePresent(String name) { return env; }
         public boolean fileExists(Path path) { return file; }
         public boolean directoryExists(Path path) { return directory; }
         public Optional<String> runtimeVersion(String name) { return runtime; }
+        public PackageInstallation packageInstallation(PackageRequirement requirement, Path skillRoot) { return packageInstallation; }
     }
 }

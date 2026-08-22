@@ -38,3 +38,27 @@ Minimal semantic handoff:
   }]
 }
 ```
+
+Inferred package handoff with structured evidence:
+
+```json
+{
+  "schemaVersion": "1.0",
+  "requirements": [{
+    "type": "package",
+    "ecosystem": "python",
+    "name": "pdfplumber",
+    "version": ">=0.11",
+    "necessity": "REQUIRED",
+    "source": "INFERRED",
+    "confidence": "HIGH",
+    "evidence": {
+      "file": "SKILL.md:24",
+      "matched": "Requires pdfplumber for table extraction.",
+      "inferenceRule": "SEMANTIC_PACKAGE_REFERENCE"
+    }
+  }]
+}
+```
+
+Java checks the corresponding local package metadata. It does not import the package, execute a lifecycle script, call a package manager, or query a registry. An unsupported constraint is `UNKNOWN`, never an assumed pass.
