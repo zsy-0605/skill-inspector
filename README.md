@@ -1,5 +1,196 @@
 # Skill Inspector
 
+[简体中文](#简体中文) · [English](#english)
+
+---
+
+<a id="简体中文"></a>
+
+## 简体中文
+
+**面向 Agent Skills 的运行前兼容性检查**
+
+Agent 能读懂一个 Skill，并不意味着当前环境能够运行它。
+
+Skill Inspector 是一个 **Agent Skill**，用于在安装、启用、执行、调试或迁移第三方 Skill 之前，以只读方式检查其运行兼容性。它把 Agent 的语义理解能力与 Java 的确定性环境验证结合起来，尽可能在工作流中途失败之前发现依赖问题。
+
+```text
+用户：“这个 Skill 在当前环境能运行吗？”
+                    │
+                    v
+          Agent + Skill Inspector
+          ├── 理解 SKILL.md
+          ├── 发现依赖
+          └── 保留证据
+                    │
+                    ▼
+             结构化 requirements JSON
+          ├── source: DECLARED / INFERRED
+          └── necessity: REQUIRED / OPTIONAL / CONDITIONAL
+                    │
+                    v
+             Java 确定性检查器
+          ├── 运行时及版本
+          ├── 命令与环境变量
+          └── 文件、目录与操作系统
+                    │
+                    v
+           READY / WARNING / NOT READY
+```
+
+```text
+$skill-inspector：检查 ./third-party-skill 是否能在这里运行。
+
+INFERRED command: pdftotext
+Evidence: scripts/convert.sh:14
+Matched: pdftotext "$INPUT" "$OUTPUT"
+Environment: NOT FOUND
+Readiness: WARNING
+```
+
+### 为什么是 Agent Skill + Java 程序？
+
+```text
+目标 Skill ──> Agent 语义提取 ──> requirements JSON
+                                            │
+                    Java 静态发现 ──────────┤
+                                            v
+                                  确定性环境验证
+                                            │
+                                            v
+                                      兼容性报告
+```
+
+Agent 负责理解说明和证据，Java 负责验证真实机器环境。`SKILL.md` 定义检查时机与方法、如何区分 `DECLARED` 和 `INFERRED`，以及何时停止；Java CLI 则安全地处理版本比较、PATH 查找、环境变量存在性、路径、操作系统、评分和稳定 JSON 输出。
+
+**每一个推断依赖都应该可解释。** 推断结果包含证据位置、经过长度限制和脱敏处理的匹配行、确定性推断规则以及置信度。线索不会被包装成已声明事实。
+
+检查不等于执行。Skill Inspector 不运行目标脚本、不导入目标代码、不安装依赖、不修改目标 Skill，也不输出环境变量的值。运行时检查只会执行检查器固定允许的命令：`java --version`、`python3 --version`（找不到时回退到 `python --version`）和 `node --version`。
+
+### 环境要求与构建
+
+- 唯一的系统构建前提是 JDK 21+
+- 首次构建时，项目自带的 Maven Wrapper 会下载 Maven 3.9.16
+
+```bash
+./mvnw clean package
+java -jar target/skill-inspector.jar --help
+```
+
+打包后的可执行文件为 `target/skill-inspector.jar`。构建完成后，也可以通过轻量启动脚本 `scripts/skill-inspector` 调用。
+
+### 使用方法
+
+输出便于阅读的报告：
+
+```bash
+java -jar target/skill-inspector.jar inspect ./examples/healthy-skill
+```
+
+输出稳定的机器可读报告：
+
+```bash
+java -jar target/skill-inspector.jar inspect ./examples/missing-env-skill --json
+```
+
+验证 Agent 从自然语言说明中提取的语义依赖：
+
+```bash
+java -jar target/skill-inspector.jar verify ./third-party-skill \
+  --requirements requirements.json --json
+```
+
+交接格式由 [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json) 定义。`source` 表示依赖是如何被发现的，`necessity` 则独立表示该依赖属于 `REQUIRED`、`OPTIONAL` 还是 `CONDITIONAL`。因此，缺失的必需语义依赖可以阻止就绪，同时不会被错误描述成 Skill 已明确声明的依赖。
+
+退出码：READY/WARNING 为 `0`，兼容性失败为 `2`，无效输入或检查错误为 `1`。调用方还必须读取 `status`/`readiness`；WARNING 并不等于已经就绪。
+
+目标 Skill 可以在现有 YAML frontmatter 中声明兼容性：
+
+```yaml
+compatibility:
+  runtimes:
+    java: ">=21"
+    python: ">=3.11"
+  commands: [git, pdftotext]
+  env: [OPENAI_API_KEY]
+  os: [linux, macos]
+  files: [./config.json]
+  directories: [./scripts]
+```
+
+该扩展是可选的、便于人工阅读，并且不会影响忽略未知字段的运行时。对象形式、可选依赖、评分方式和 JSON 契约请参阅 [V0.1 规范](references/compatibility-spec.md)。
+
+### 测试与评估
+
+```bash
+./mvnw test
+./scripts/run-evals.sh
+```
+
+JUnit 覆盖确定性检查器与解析逻辑。Eval Runner 会构建项目，并执行跨平台合成用例，覆盖 READY、WARNING、命令/环境变量/文件缺失、不可能满足的运行时、操作系统不匹配、推断依赖溯源以及“不执行目标代码”原则。触发提示词和基线方法位于 [`evals/`](evals/README.md)。
+
+#### 真实 Skill 受控基准测试
+
+V0.1.1 对来自 6 个 GitHub 仓库、固定到具体提交的 30 个未修改公开 Agent Skills 进行了评估。实验固定模型（`gpt-5.6-sol`）、提示词、目标提交和测试环境，并在两种条件下分别对每个 Skill 运行 3 次，共计 180 次模型试验。
+
+```bash
+python3 scripts/run-controlled-benchmark.py \
+  --runs 3 --java /absolute/path/to/jdk-21/bin/java
+```
+
+| 方法 | 依赖召回率 | 精确率 | 必需依赖召回率 | 分类准确率 | 诊断完整度 | False Ready |
+|---|---:|---:|---:|---:|---:|---:|
+| 仅 Agent | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 21.4% |
+| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **1.2%** |
+
+混合方法还将 False Block 从 50.0% 降低到 33.3%，但尚未完全消除。项目维护者已对 30 个 Skill 的依赖、证据、必要性和环境结论完成人工复核。以上结果仍然只是固定数据集、单一模型和单一 Linux 环境下的受控实验结果，不代表整个 Agent Skill 生态的普遍准确率。在 Skill Inspector 当前支持的机器可读依赖定义下，这 30 个 Skill 均未声明受支持格式的结构化运行时契约。
+
+详细信息请参阅[基准测试协议](benchmark/README.md)、[固定数据集](benchmark/dataset.json)、[受控环境](benchmark/environment.json)和[完整对比结果](benchmark/results/controlled-2026-08-21.md)。
+
+### V0.1 支持范围
+
+已支持：
+
+- Java、Python 和 Node 的存在性及版本约束
+- 基于 PATH/PATHEXT 的跨平台命令发现，不依赖 `which`
+- 环境变量存在性检查，且强制脱敏
+- 以目标 Skill 为基准的必需文件和目录检查
+- Windows、Linux 和 macOS 声明
+- YAML frontmatter 解析，以及基于脚本扩展名、shebang 和简单 shell 命令位置的保守高置信度推断
+- 带证据位置、匹配文本、规则、置信度、脱敏和符号链接排除的可解释推断
+- `source` 与 `necessity` 相互独立的 Agent-to-Java 结构化语义交接
+- `DECLARED`/`INFERRED` 溯源、READY/WARNING/NOT READY、透明评分以及文本和 JSON 输出
+
+暂不支持：
+
+- MCP、Agent Tool、网络、权限、包管理器或 Skill-to-Skill 能力检查
+- 由 Java 进行通用自然语言依赖提取；语义理解由 Agent 负责
+- 自动安装、自动修复或修改目标 Skill
+- 恶意代码、提示词注入、漏洞、病毒或供应链扫描
+- 证明一个兼容的 Skill 一定安全、正确或能够成功完成任务
+
+### 设计说明
+
+代码按 `parse`、`model`、`check`、`core`、`report` 和 `cli` 分包。所有检查器共享一个小型 `EnvironmentProbe` 边界，因此不引入依赖注入框架也能在单元测试中替换操作系统和进程访问。评分用于解释结果，而不是代替规则：任何 `REQUIRED` 失败都会产生 NOT READY，可选和条件依赖失败只产生警告。
+
+### 路线图
+
+- **V0.1：** 本地兼容性检查——已完成。
+- **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
+- **V0.2：** 更丰富的语义契约以及包/能力验证。
+- **V0.3：** MCP 与 Agent Tool Runtime Adapter。
+- **V0.4：** Skill-to-Skill 依赖。
+
+长期方向包括能力图谱、迁移辅助、Skill CI/Registry 集成和基于运行轨迹的演进；这些内容目前仍明确位于项目范围之外。
+
+[返回顶部](#skill-inspector) · [跳转到 English](#english)
+
+---
+
+<a id="english"></a>
+
+## English
+
 **Preflight compatibility inspection for Agent Skills**
 
 Your agent can read a Skill. That doesn't mean it can run it.
@@ -40,7 +231,7 @@ Environment: NOT FOUND
 Readiness: WARNING
 ```
 
-## Why a Skill and a Java program?
+### Why a Skill and a Java program?
 
 ```text
 Target Skill ──> Agent semantic extraction ──> requirements JSON
@@ -59,9 +250,10 @@ The Agent understands instructions and evidence. Java verifies the actual machin
 
 Inspection is not execution. Skill Inspector never runs target scripts, imports target code, installs dependencies, changes the target, or prints environment-variable values. Runtime checks execute only the inspector's fixed allowlist: `java --version`, `python3 --version` (falling back to `python --version`), and `node --version`.
 
-## Requirements and build
+### Requirements and build
 
-- JDK 21+ is the only system build prerequisite; the included Maven Wrapper downloads Maven 3.9.16 on first use
+- JDK 21+ is the only system build prerequisite
+- The included Maven Wrapper downloads Maven 3.9.16 on first use
 
 ```bash
 ./mvnw clean package
@@ -70,7 +262,7 @@ java -jar target/skill-inspector.jar --help
 
 The shaded executable is `target/skill-inspector.jar`. The small `scripts/skill-inspector` launcher provides a convenient command after the build.
 
-## Usage
+### Usage
 
 Human-readable report:
 
@@ -111,7 +303,7 @@ compatibility:
 
 The extension is optional, human-readable, and safe for runtimes that ignore unknown fields. See [the V0.1 specification](references/compatibility-spec.md) for object forms, optional dependencies, scoring, and the JSON contract.
 
-## Tests and evaluations
+### Tests and evaluations
 
 ```bash
 ./mvnw test
@@ -120,7 +312,7 @@ The extension is optional, human-readable, and safe for runtimes that ignore unk
 
 JUnit covers deterministic checkers and parsing. The Eval runner builds the project and exercises cross-platform synthetic cases for READY, WARNING, missing command/env/file, impossible runtime, OS mismatch, inferred dependency provenance, and the no-execution invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
 
-### Controlled real-world benchmark
+#### Controlled real-world benchmark
 
 V0.1.1 evaluates 30 unmodified public Agent Skills pinned across six GitHub repositories. The controlled experiment locks the model (`gpt-5.6-sol`), prompts, target commits, environment, and three runs per Skill for both conditions: 180 model trials total.
 
@@ -134,11 +326,11 @@ python3 scripts/run-controlled-benchmark.py \
 | Agent only | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 21.4% |
 | **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **1.2%** |
 
-The hybrid method also reduced false blocks from 50.0% to 33.3%, but did not eliminate them. These are pooled pilot results against AI-assisted reviewed annotations; **human signoff is still pending**, so they are evidence, not a final ecosystem-wide claim. Within this benchmark and Skill Inspector's machine-readable dependency definition, none of the 30 pinned Skills declared a structured runtime contract in the supported schema.
+The hybrid method also reduced false blocks from 50.0% to 33.3%, but did not eliminate them. The project maintainer manually reviewed the dependencies, evidence, necessity, and environment conclusions for all 30 Skills. These results remain a controlled experiment on a fixed dataset, one model, and one Linux environment; they are not an ecosystem-wide accuracy claim. Within this benchmark and Skill Inspector's machine-readable dependency definition, none of the 30 pinned Skills declared a structured runtime contract in the supported schema.
 
 See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), and [full comparison](benchmark/results/controlled-2026-08-21.md).
 
-## V0.1 scope
+### V0.1 scope
 
 Supported:
 
@@ -160,16 +352,18 @@ Not supported:
 - Malware, prompt-injection, vulnerability, virus, or supply-chain scanning
 - Proving that a compatible Skill is safe or functionally correct
 
-## Design notes
+### Design notes
 
 The package structure separates `parse`, `model`, `check`, `core`, `report`, and `cli`. Checkers share a small `EnvironmentProbe` boundary, keeping OS/process access replaceable in unit tests without a dependency-injection framework. The score is explanatory rather than authoritative: any `REQUIRED` failure produces NOT READY, while optional and conditional failures remain warnings.
 
-## Roadmap
+### Roadmap
 
 - **V0.1:** Local compatibility inspection — complete.
-- **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and AI-assisted ground truth — implemented; independent human signoff pending.
+- **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
 - **V0.2:** Richer semantic contracts and package/capability verification.
 - **V0.3:** MCP and Agent Tool runtime adapters.
 - **V0.4:** Skill-to-Skill dependencies.
 
 Longer-term possibilities include a capability graph, migration assistance, Skill CI/registry integration, and trace-based evolution. They intentionally remain outside the current scope.
+
+[Back to top](#skill-inspector) · [转到简体中文](#简体中文)
