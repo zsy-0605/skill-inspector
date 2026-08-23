@@ -26,6 +26,12 @@ public final class HumanReportRenderer {
                 if (check.inferenceRule() != null) out.append("\n  Rule: ").append(check.inferenceRule());
                 if (check.resolvedCapability() != null) out.append("\n  Resolved Capability: ").append(check.resolvedCapability());
                 if (check.capabilitySource() != null) out.append("\n  Capability Source: ").append(check.capabilitySource());
+                if (check.resolvedSkill() != null) out.append("\n  Resolved Skill: ").append(check.resolvedSkill());
+                if (check.skillVersion() != null) out.append("\n  Skill Version: ").append(check.skillVersion());
+                if (check.inventorySource() != null) out.append("\n  Inventory Source: ").append(check.inventorySource());
+                if (check.dependencyPath() != null) out.append("\n  Dependency Path: ").append(check.dependencyPath());
+                if (check.dependencyDepth() != null) out.append("\n  Dependency Depth: ").append(check.dependencyDepth());
+                if (check.resolutionKind() != null) out.append("\n  Resolution Kind: ").append(check.resolutionKind());
                 out.append("\n");
             });
         });
@@ -43,7 +49,7 @@ public final class HumanReportRenderer {
     private String title(RequirementType type) { return switch (type) {
         case RUNTIME -> "Runtimes"; case COMMAND -> "Commands"; case ENVIRONMENT_VARIABLE -> "Environment";
         case FILE -> "Files"; case DIRECTORY -> "Directories"; case OPERATING_SYSTEM -> "Operating System";
-        case PACKAGE -> "Packages"; case CAPABILITY -> "Runtime Capabilities";
+        case PACKAGE -> "Packages"; case CAPABILITY -> "Runtime Capabilities"; case SKILL -> "Skill Dependencies";
     }; }
     private String symbol(CheckStatus status) { return switch (status) { case PASS -> "✓"; case FAIL -> "✗"; case WARNING -> "!"; case UNKNOWN -> "?"; }; }
 }

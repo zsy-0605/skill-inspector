@@ -1,4 +1,4 @@
-# Compatibility metadata specification — V0.3
+# Compatibility metadata specification — V0.4
 
 ## Purpose
 
@@ -43,6 +43,11 @@ compatibility:
     - capabilityKind: tool
       name: hf_jobs
       necessity: conditional
+  skills:
+    - namespace: acme
+      name: data-extractor
+      version: ">=1.2"
+      necessity: required
 ---
 ```
 
@@ -59,6 +64,7 @@ compatibility:
 | `directories` | list | Relative/absolute path string or `{path, optional}` |
 | `packages` | list | `{ecosystem, name, version?, necessity?}` for `python`, `npm`, or `maven` |
 | `capabilities` | list | `{capabilityKind, name, necessity?}` where kind is `mcpServer`, `tool`, or `capability` |
+| `skills` | list | `{namespace?, name, version?, necessity?}` using an exact lowercase Skill identity |
 
 Runtime constraints support `>`, `>=`, `<`, `<=`, `=`, exact versions, `*`, and one trailing wildcard such as `21.x`. Package constraints intentionally cover a conservative subset: Python comparison lists and compatible releases, common npm exact/comparison/wildcard/caret/tilde/range expressions, and exact or single-interval Maven versions. Unsupported expressions produce `UNKNOWN`; they are never guessed. `source` (`DECLARED` or `INFERRED`) describes provenance; `necessity` (`REQUIRED`, `OPTIONAL`, or `CONDITIONAL`) independently controls blocking behavior. Missing required dependencies are `FAIL`; missing optional or conditional dependencies are `WARNING`.
 
@@ -66,7 +72,9 @@ Root-level `requirements.txt`, `pyproject.toml`, `package.json`, and `pom.xml` e
 
 Package verification is local and read-only. Python checks distribution metadata under target/configured virtual environments and conventional local site-package roots; npm checks package manifests in the applicable local `node_modules` path; Maven checks artifacts already present in the configured or standard local repository. The inspector never imports a package, runs lifecycle scripts, invokes an installer, downloads an artifact, or queries a remote registry.
 
-Capability names are exact and case-sensitive. Matching uses only the canonical name or aliases explicitly present in the Runtime Capability Snapshot; the Java core contains no platform aliases. In V0.3 the only supported constraint is `required: available`. Abstract `capability` entries require an explicit identifier and must not be invented from generic natural language.
+Capability names are exact and case-sensitive. Matching uses only the canonical name or aliases explicitly present in the Runtime Capability Snapshot; the Java core contains no platform aliases. The only supported capability constraint is `required: available`. Abstract `capability` entries require an explicit identifier and must not be invented from generic natural language.
+
+Skill identities are exact lowercase `namespace/name` pairs or bare `name` values; a bare and namespaced identity never match implicitly. V0.4 has no Skill aliases. Skill versions support `*`, exact/`=`, `>`, `>=`, `<`, `<=`, and one-segment `1.x`/`1.*`. Unsupported constraints and unknown installed versions yield `UNKNOWN`.
 
 ## Semantic handoff
 
@@ -77,7 +85,7 @@ java -jar target/skill-inspector.jar verify ./target-skill \
   --requirements requirements.json --json
 ```
 
-The input must conform to [`semantic-requirements.schema.json`](semantic-requirements.schema.json), is limited to 1 MiB and 1,000 entries, and must be a regular non-symbolic-link file. Semantic entries must use `source: INFERRED`, include evidence, confidence, and necessity, and may include bounded matched text. Package entries additionally require `ecosystem` and accept `version` (or the backward-compatible `required` alias). Evidence can use the legacy file string or `{file, matched, inferenceRule}`. Java merges duplicate findings by preferring declarations and then stronger necessity/confidence. Handoff 1.0 remains accepted for V0.2 requirement types; capability entries require `schemaVersion: "1.1"`, `type: "capability"`, and `capabilityKind`.
+The input must conform to [`semantic-requirements.schema.json`](semantic-requirements.schema.json), is limited to 1 MiB and 1,000 entries, and must be a regular non-symbolic-link file. Semantic entries must use `source: INFERRED`, include evidence, confidence, and necessity, and may include bounded matched text. Package entries additionally require `ecosystem`; Skill entries accept an optional `namespace`; both accept `version` (or the backward-compatible `required` alias). Evidence can use the legacy file string or `{file, matched, inferenceRule}`. Java merges duplicate findings by preferring declarations and then stronger necessity/confidence. Handoff 1.0 remains accepted for V0.2 types, 1.1 adds capability requirements, and 1.2 adds Skill requirements while continuing to accept all older types.
 
 ## Runtime Capability Snapshot
 
@@ -102,9 +110,24 @@ The Snapshot must conform to [`runtime-capabilities.schema.json`](runtime-capabi
 
 An optional or conditional failure is downgraded to `WARNING`. Duplicate names or name/alias ambiguity within one capability kind makes the Snapshot invalid. Snapshot generation may use only a capability inventory already exposed in the current session or an explicit static inventory. Inspection never starts a server, sends MCP requests, calls or enumerates tools, checks authentication/network health, or changes configuration.
 
+## Skill Inventory and read-only graph resolution
+
+Skill dependency checks use a separate platform-neutral inventory:
+
+```bash
+java -jar target/skill-inspector.jar inspect ./target-skill \
+  --skills skill-inventory.json --json
+```
+
+The inventory must conform to [`skill-inventory.schema.json`](skill-inventory.schema.json): a regular non-symbolic-link JSON file no larger than 1 MiB, with at most 1,000 Skill entries and 5,000 dependency edges. Global `COMPLETE` coverage means an absent identity is missing; under `PARTIAL`, absence is `UNKNOWN`. Each available entry separately declares whether its dependency list is `COMPLETE` or `PARTIAL`. A partial child graph always adds an `UNKNOWN` check and cannot produce `READY`.
+
+Resolution follows only edges already present in the supplied inventory, to depth 64. It reports the exact dependency path, effective necessity, transitive version result, and cycles. An all-required cycle is `FAIL`; a cycle reached through an optional or conditional edge is `WARNING`; a graph or depth limit is `UNKNOWN`. `CONFIGURED` and `UNKNOWN` availability remain `UNKNOWN`, and `LOCAL_SKILL_DIRECTORY` cannot by itself claim `AVAILABLE`.
+
+Inspection does not discover arbitrary Skill directories, download or install a Skill, activate one, execute it, recursively inspect a child Skill's runtime/package requirements, contact a registry, or resolve capabilities supplied by another Skill. Here, resolution means only deterministic traversal of caller-supplied data: **Inspection ≠ Resolution ≠ Execution**.
+
 ## Stable result contract
 
-JSON reports use `schemaVersion: "1.1"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type` (`runtime`, `command`, `environmentVariable`, `file`, `directory`, `operatingSystem`, `package`, or `capability`), `name`, `required`, `actual`, `status`, `source`, `necessity`, optional `ecosystem`, `capabilityKind`, `resolvedCapability`, `capabilitySource`, `version`, `confidence`, `evidence`, `matched`, `inferenceRule`, and `message`. `matched` is limited to 240 characters and redacts likely token, secret, password, and API-key assignments. Consumers must ignore unknown additive fields.
+JSON reports use `schemaVersion: "1.2"` and contain `skill`, an absolute normalized string `target`, `status`, `score`, `readiness`, `checks`, and `issues`. Each check contains `type`, `name`, `required`, `actual`, `status`, `source`, `necessity`, and the applicable package, capability, evidence, or Skill graph fields. Skill checks may include `skillNamespace`, `resolvedSkill`, `skillVersion`, `inventorySource`, `dependencyDepth`, `dependencyPath`, and `resolutionKind`. `matched` is limited to 240 characters and redacts likely token, secret, password, and API-key assignments. Consumers must ignore unknown additive fields.
 
 Every inferred dependency must be explainable. `evidence` identifies the file and line when available, `matched` shows the bounded static text that triggered inference, and `inferenceRule` names the deterministic rule. Symbolic links under `scripts/` are never inspected.
 

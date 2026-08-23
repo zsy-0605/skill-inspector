@@ -9,11 +9,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "ecosystem", "capabilityKind", "name", "version", "necessity", "source", "inScope", "evidence", "notes"],
+        "required": ["type", "ecosystem", "capabilityKind", "namespace", "name", "version", "necessity", "source", "inScope", "evidence", "notes"],
         "properties": {
-          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability"]},
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability", "skill"]},
           "ecosystem": {"type": ["string", "null"], "enum": ["python", "npm", "maven", null]},
           "capabilityKind": {"type": ["string", "null"], "enum": ["mcpServer", "tool", "capability", null]},
+          "namespace": {"type": ["string", "null"]},
           "name": {"type": "string"},
           "version": {"type": ["string", "null"]},
           "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},

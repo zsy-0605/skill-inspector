@@ -1,0 +1,25 @@
+{
+  "schemaVersion": "1.0",
+  "datasetVersion": "v0.4-skill-dependency-pilot-2026-08-23",
+  "scope": "Static evidence labels over existing pinned samples; not a controlled benchmark result.",
+  "samples": [
+    {
+      "skillId": "openai-gh-fix-ci",
+      "classification": "POSITIVE_CONDITIONAL",
+      "dependencies": [{"name": "create-plan", "necessity": "CONDITIONAL", "evidence": "SKILL.md:12,54"}],
+      "reason": "The Skill refers to a separate planning Skill but retains a local workflow fallback."
+    },
+    {
+      "skillId": "plugin-hf-community-evals",
+      "classification": "POSITIVE_CONDITIONAL",
+      "dependencies": [{"name": "hugging-face-jobs", "necessity": "CONDITIONAL", "evidence": "SKILL.md:24"}],
+      "reason": "The workflow hands a remote path to a named sibling Skill; the pinned corpus does not establish a hard runtime blocker."
+    },
+    {"skillId": "openai-screenshot", "classification": "BOUNDARY_NEGATIVE", "dependencies": [],
+     "reason": "A Figma MCP/skill wording boundary does not establish an exact Skill identity dependency."},
+    {"skillId": "plugin-shopify-dev", "classification": "NEGATIVE", "dependencies": [],
+     "reason": "Routing suggestions to API-specific Skills are not hard dependencies of this Skill."},
+    {"skillId": "anthropic-web-artifacts", "classification": "NEGATIVE", "dependencies": [],
+     "reason": "Generic references to other Skills do not identify a concrete dependency."}
+  ]
+}

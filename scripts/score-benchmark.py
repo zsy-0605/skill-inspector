@@ -23,7 +23,9 @@ def percent(numerator: int, denominator: int) -> str:
 
 def dependency_key(item: dict[str, Any]) -> tuple[str, str, str]:
     kind = item["type"]
-    name = item["name"] if kind == "capability" else item["name"].lower()
+    name = item["name"] if kind in {"capability", "skill"} else item["name"].lower()
+    if kind == "skill" and item.get("namespace") and "/" not in name:
+        name = item["namespace"] + "/" + name
     ecosystem = (item.get("ecosystem", "").lower() if kind == "package"
                  else item.get("capabilityKind", "") if kind == "capability" else "")
     if kind == "runtime":
@@ -62,11 +64,18 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         required_capability_deps = {dependency_key(item) for item in label.get("dependencies", [])
                                     if item.get("inScope") and item.get("type") == "capability"
                                     and item.get("necessity") == "REQUIRED"}
+        skill_deps = {dependency_key(item) for item in label.get("dependencies", [])
+                      if item.get("inScope") and item.get("type") == "skill"}
+        required_skill_deps = {dependency_key(item) for item in label.get("dependencies", [])
+                               if item.get("inScope") and item.get("type") == "skill"
+                               and item.get("necessity") == "REQUIRED"}
         blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])}
         package_blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])
                             if item.get("type") == "package"}
         capability_blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])
                                if item.get("type") == "capability"}
+        skill_blockers = {dependency_key(item) for item in label.get("blockingDependencies", [])
+                          if item.get("type") == "skill"}
         if skill_id not in predicted:
             missing_predictions.append(skill_id)
             counts["fn"] += len(actual_deps)
@@ -77,8 +86,12 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
             counts["capabilityFn"] += len(capability_deps)
             counts["requiredCapabilityFn"] += len(required_capability_deps)
             counts["capabilityTruth"] += len(capability_deps)
+            counts["skillFn"] += len(skill_deps)
+            counts["requiredSkillFn"] += len(required_skill_deps)
+            counts["skillTruth"] += len(skill_deps)
             counts["packageBlockerCases"] += int(bool(package_blockers))
             counts["capabilityBlockerCases"] += int(bool(capability_blockers))
+            counts["skillBlockerCases"] += int(bool(skill_blockers))
             counts["diagnosisCases"] += int(bool(blockers))
             continue
         item = predicted[skill_id]
@@ -87,6 +100,8 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
                                   if dep.get("inScope", True) and dep.get("type") == "package"}
         predicted_capability_deps = {dependency_key(dep) for dep in item.get("dependencies", [])
                                      if dep.get("inScope", True) and dep.get("type") == "capability"}
+        predicted_skill_deps = {dependency_key(dep) for dep in item.get("dependencies", [])
+                                if dep.get("inScope", True) and dep.get("type") == "skill"}
         counts["tp"] += len(actual_deps & predicted_deps)
         counts["fp"] += len(predicted_deps - actual_deps)
         counts["fn"] += len(actual_deps - predicted_deps)
@@ -104,6 +119,12 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         counts["requiredCapabilityTp"] += len(required_capability_deps & predicted_capability_deps)
         counts["requiredCapabilityFn"] += len(required_capability_deps - predicted_capability_deps)
         counts["capabilityTruth"] += len(capability_deps)
+        counts["skillTp"] += len(skill_deps & predicted_skill_deps)
+        counts["skillFp"] += len(predicted_skill_deps - skill_deps)
+        counts["skillFn"] += len(skill_deps - predicted_skill_deps)
+        counts["requiredSkillTp"] += len(required_skill_deps & predicted_skill_deps)
+        counts["requiredSkillFn"] += len(required_skill_deps - predicted_skill_deps)
+        counts["skillTruth"] += len(skill_deps)
         predicted_capability_items = [dep for dep in item.get("dependencies", [])
                                       if dep.get("inScope", True) and dep.get("type") == "capability"]
         status_observations = [dep for dep in predicted_capability_items if dep.get("status") is not None]
@@ -112,6 +133,14 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         counts["capabilitySnapshotPresent"] += sum(dep.get("actual") != "NO SNAPSHOT"
                                                     for dep in predicted_capability_items if dep.get("actual") is not None)
         counts["capabilitySnapshotObserved"] += sum(dep.get("actual") is not None for dep in predicted_capability_items)
+        predicted_skill_items = [dep for dep in item.get("dependencies", [])
+                                 if dep.get("inScope", True) and dep.get("type") == "skill"]
+        skill_statuses = [dep for dep in predicted_skill_items if dep.get("status") is not None]
+        counts["skillChecks"] += len(skill_statuses)
+        counts["skillUnknown"] += sum(dep.get("status") == "UNKNOWN" for dep in skill_statuses)
+        counts["skillInventoryPresent"] += sum(dep.get("actual") not in {None, "No Skill Inventory provided"}
+                                                 for dep in predicted_skill_items)
+        counts["skillInventoryObserved"] += sum(dep.get("actual") is not None for dep in predicted_skill_items)
         actual_readiness, predicted_readiness = readiness(label.get("actualReadiness")), readiness(item.get("readiness"))
         if actual_readiness != "UNVERIFIABLE":
             counts["classificationCases"] += 1
@@ -136,6 +165,9 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         if capability_blockers:
             counts["capabilityBlockerCases"] += 1
             counts["capabilityFalseReady"] += int(predicted_readiness == "READY")
+        if skill_blockers:
+            counts["skillBlockerCases"] += 1
+            counts["skillFalseReady"] += int(predicted_readiness == "READY")
     return {"method": prediction.get("method", "UNKNOWN"), "model": prediction.get("model", "UNKNOWN"),
             "run": prediction.get("run"), "reviewed": len(labels),
             "scored": len(labels) - len(missing_predictions), "counts": dict(counts),
@@ -179,6 +211,13 @@ def aggregate(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
                        "capabilityFalseReady": percent(counts["capabilityFalseReady"], counts["capabilityBlockerCases"]),
                        "snapshotCoverage": percent(counts["capabilitySnapshotPresent"], counts["capabilitySnapshotObserved"]),
                        "capabilityUnknownRate": percent(counts["capabilityUnknown"], counts["capabilityChecks"]),
+                       "skillN": counts["skillTruth"] // len(runs),
+                       "skillRecall": percent(counts["skillTp"], counts["skillTp"] + counts["skillFn"]),
+                       "skillPrecision": percent(counts["skillTp"], counts["skillTp"] + counts["skillFp"]),
+                       "requiredSkillRecall": percent(counts["requiredSkillTp"], counts["requiredSkillTp"] + counts["requiredSkillFn"]),
+                       "skillFalseReady": percent(counts["skillFalseReady"], counts["skillBlockerCases"]),
+                       "skillInventoryCoverage": percent(counts["skillInventoryPresent"], counts["skillInventoryObserved"]),
+                       "skillUnknownRate": percent(counts["skillUnknown"], counts["skillChecks"]),
                        "counts": dict(counts)})
     return output
 
@@ -203,6 +242,11 @@ def render(scores: list[dict[str, Any]], truth: dict[str, Any]) -> str:
               "|---|---:|---:|---:|---:|---:|---:|---:|"]
     for item in scores:
         lines.append(f"| {item['method']} | {item['capabilityN']} | {item['capabilityRecall']} | {item['capabilityPrecision']} | {item['requiredCapabilityRecall']} | {item['capabilityFalseReady']} | {item['snapshotCoverage']} | {item['capabilityUnknownRate']} |")
+    lines += ["", "## Skill dependency metrics", "",
+              "| Method | Skill N | Skill recall | Skill precision | Required Skill recall | Skill false ready | Inventory coverage | UNKNOWN rate |",
+              "|---|---:|---:|---:|---:|---:|---:|---:|"]
+    for item in scores:
+        lines.append(f"| {item['method']} | {item['skillN']} | {item['skillRecall']} | {item['skillPrecision']} | {item['requiredSkillRecall']} | {item['skillFalseReady']} | {item['skillInventoryCoverage']} | {item['skillUnknownRate']} |")
     lines += ["", "Metrics are pooled across repeated runs. `False ready` means NOT READY predicted as READY; `Missed warning` means WARNING predicted as READY. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.", "",
               "## Interpretation", "",
               "The hybrid method improved dependency coverage and reduced missed-warning decisions by turning Agent-extracted requirements into deterministic environment checks. Strict false-ready and false-block rates remain environment- and label-distribution-dependent and are reported separately.", "",

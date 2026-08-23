@@ -1,0 +1,21 @@
+{
+  "schemaVersion": "1.0",
+  "coverage": "COMPLETE",
+  "skills": [
+    {
+      "identity": {"namespace": "acme", "name": "data-extractor"},
+      "version": "1.4.0",
+      "availability": "AVAILABLE",
+      "source": "RUNTIME_INVENTORY",
+      "dependencyCoverage": "COMPLETE",
+      "dependencies": [{
+        "identity": {"name": "document-reader"}, "version": "1.x", "necessity": "REQUIRED",
+        "source": "DECLARED", "evidence": "acme/data-extractor/SKILL.md frontmatter"
+      }]
+    },
+    {
+      "identity": {"name": "document-reader"}, "version": "1.8.0", "availability": "AVAILABLE",
+      "source": "RUNTIME_INVENTORY", "dependencyCoverage": "COMPLETE", "dependencies": []
+    }
+  ]
+}

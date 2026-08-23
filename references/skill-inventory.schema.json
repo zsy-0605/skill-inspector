@@ -1,0 +1,37 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Inspector Skill Inventory 1.0",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "coverage", "skills"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "coverage": {"enum": ["COMPLETE", "PARTIAL"]},
+    "skills": {"type": "array", "maxItems": 1000, "items": {"$ref": "#/$defs/skill"}}
+  },
+  "$defs": {
+    "identity": {"type": "object", "additionalProperties": false, "required": ["name"], "properties": {
+      "namespace": {"type": "string", "maxLength": 500, "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"},
+      "name": {"type": "string", "maxLength": 500, "pattern": "^[a-z0-9](?:[a-z0-9.-]*[a-z0-9])?$"}
+    }},
+    "dependency": {"type": "object", "additionalProperties": false,
+      "required": ["identity", "necessity", "source", "evidence"], "properties": {
+        "identity": {"$ref": "#/$defs/identity"}, "version": {"type": "string", "maxLength": 500},
+        "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+        "source": {"enum": ["DECLARED", "INFERRED"]}, "confidence": {"enum": ["HIGH", "MEDIUM", "LOW"]},
+        "evidence": {"type": "string", "minLength": 1, "maxLength": 500},
+        "matched": {"type": "string", "maxLength": 240}, "inferenceRule": {"type": "string", "maxLength": 500}
+      },
+      "allOf": [{"if": {"properties": {"source": {"const": "INFERRED"}}, "required": ["source"]}, "then": {"required": ["confidence"]}, "else": {"not": {"required": ["confidence"]}}}]
+    },
+    "skill": {"type": "object", "additionalProperties": false,
+      "required": ["identity", "availability", "source", "dependencyCoverage"], "properties": {
+        "identity": {"$ref": "#/$defs/identity"}, "version": {"type": "string", "maxLength": 500},
+        "availability": {"enum": ["AVAILABLE", "CONFIGURED", "UNAVAILABLE", "UNKNOWN"]},
+        "source": {"enum": ["RUNTIME_INVENTORY", "LOCAL_SKILL_DIRECTORY", "STATIC_CONFIGURATION", "USER_PROVIDED"]},
+        "dependencyCoverage": {"enum": ["COMPLETE", "PARTIAL"]},
+        "dependencies": {"type": "array", "maxItems": 5000, "items": {"$ref": "#/$defs/dependency"}}
+      },
+      "allOf": [{"if": {"properties": {"source": {"const": "LOCAL_SKILL_DIRECTORY"}}, "required": ["source"]}, "then": {"properties": {"availability": {"not": {"const": "AVAILABLE"}}}}}]
+    }
+  }
+}

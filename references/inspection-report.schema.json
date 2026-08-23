@@ -1,0 +1,25 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Inspector report 1.2",
+  "type": "object", "additionalProperties": false,
+  "required": ["schemaVersion", "skill", "target", "status", "score", "readiness", "checks", "issues"],
+  "properties": {
+    "schemaVersion": {"const": "1.2"}, "skill": {"type": "string"}, "target": {"type": "string"},
+    "status": {"enum": ["READY", "WARNING", "FAIL"]}, "score": {"type": "integer", "minimum": 0, "maximum": 100},
+    "readiness": {"enum": ["READY", "WARNING", "NOT READY"]},
+    "issues": {"type": "array", "items": {"type": "string"}},
+    "checks": {"type": "array", "items": {"type": "object", "additionalProperties": true,
+      "required": ["type", "name", "required", "actual", "status", "source", "necessity", "message"],
+      "properties": {
+        "type": {"enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability", "skill"]},
+        "name": {"type": "string"}, "required": {"type": "string"}, "actual": {"type": "string"},
+        "status": {"enum": ["PASS", "FAIL", "WARNING", "UNKNOWN"]},
+        "source": {"enum": ["DECLARED", "INFERRED"]}, "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+        "skillNamespace": {"type": "string"}, "resolvedSkill": {"type": "string"}, "skillVersion": {"type": "string"},
+        "inventorySource": {"enum": ["RUNTIME_INVENTORY", "LOCAL_SKILL_DIRECTORY", "STATIC_CONFIGURATION", "USER_PROVIDED"]},
+        "dependencyDepth": {"type": "integer", "minimum": 1}, "dependencyPath": {"type": "string"},
+        "resolutionKind": {"enum": ["DEPENDENCY", "GRAPH_COVERAGE", "GRAPH_CYCLE", "GRAPH_LIMIT"]}
+      }
+    }}
+  }
+}

@@ -15,11 +15,16 @@ public final class InspectionService {
     private final SkillParser parser;
     private final EnvironmentProbe environment;
     private final List<RequirementChecker> checkers;
+    private final DependencyGraphResolver dependencyResolver;
 
-    public InspectionService() { this(new SkillParser(), new SystemEnvironmentProbe()); }
+    public InspectionService() { this(new SkillParser(), new SystemEnvironmentProbe(), new DependencyGraphResolver()); }
     public InspectionService(SkillParser parser, EnvironmentProbe environment) {
+        this(parser, environment, new DependencyGraphResolver());
+    }
+    public InspectionService(SkillParser parser, EnvironmentProbe environment, DependencyGraphResolver dependencyResolver) {
         this.parser = parser;
         this.environment = environment;
+        this.dependencyResolver = dependencyResolver;
         this.checkers = List.of(new RuntimeChecker(), new CommandChecker(), new EnvironmentVariableChecker(),
                 new FileChecker(), new OperatingSystemChecker(), new PackageChecker(), new CapabilityChecker());
     }
@@ -37,13 +42,17 @@ public final class InspectionService {
     private InspectionReport inspect(SkillDefinition skill, List<Requirement> requirements) {
         List<CheckResult> results = new ArrayList<>();
         for (Requirement requirement : requirements) {
+            if (requirement instanceof SkillDependencyRequirement) continue;
             RequirementChecker checker = checkers.stream().filter(item -> item.supports(requirement.type())).findFirst()
                     .orElseThrow(() -> new IllegalStateException("No checker for " + requirement.type()));
             results.add(checker.check(requirement, skill.root(), environment));
         }
+        List<SkillDependencyRequirement> skillRequirements = requirements.stream()
+                .filter(SkillDependencyRequirement.class::isInstance).map(SkillDependencyRequirement.class::cast).toList();
+        results.addAll(dependencyResolver.resolve(skill.name(), skillRequirements));
         OverallStatus overall = overall(results);
         List<String> issues = results.stream().filter(r -> r.status() != CheckStatus.PASS).map(CheckResult::message).toList();
-        return new InspectionReport("1.1", skill.name(), skill.root().toString(), overall, score(results), readiness(overall), List.copyOf(results), issues);
+        return new InspectionReport("1.2", skill.name(), skill.root().toString(), overall, score(results), readiness(overall), List.copyOf(results), issues);
     }
 
     private List<Requirement> merge(List<Requirement> discovered, List<Requirement> semantic) {
@@ -54,16 +63,38 @@ public final class InspectionService {
     }
 
     private Requirement prefer(Requirement left, Requirement right) {
-        if (left.source() != right.source()) return left.source() == RequirementSource.DECLARED ? left : right;
+        if (left.source() != right.source()) {
+            Requirement declared = left.source() == RequirementSource.DECLARED ? left : right;
+            RequirementNecessity strongest = rank(left.necessity()) >= rank(right.necessity())
+                    ? left.necessity() : right.necessity();
+            return withNecessity(declared, strongest);
+        }
         int necessity = Integer.compare(rank(right.necessity()), rank(left.necessity()));
         if (necessity != 0) return necessity > 0 ? right : left;
         return confidence(right.confidence()) > confidence(left.confidence()) ? right : left;
     }
 
+    private Requirement withNecessity(Requirement item, RequirementNecessity necessity) {
+        if (item.necessity() == necessity) return item;
+        if (item instanceof PackageRequirement value)
+            return new PackageRequirement(value.ecosystem(), value.name(), value.required(), necessity, value.source(),
+                    value.confidence(), value.evidence(), value.matched(), value.inferenceRule());
+        if (item instanceof CapabilityRequirement value)
+            return new CapabilityRequirement(value.capabilityKind(), value.name(), value.required(), necessity, value.source(),
+                    value.confidence(), value.evidence(), value.matched(), value.inferenceRule());
+        if (item instanceof SkillDependencyRequirement value)
+            return new SkillDependencyRequirement(value.identity(), value.requiredVersion(), necessity, value.source(),
+                    value.confidence(), value.evidence(), value.matched(), value.inferenceRule());
+        SkillRequirement value = (SkillRequirement) item;
+        return new SkillRequirement(value.type(), value.name(), value.required(), necessity, value.source(),
+                value.confidence(), value.evidence(), value.matched(), value.inferenceRule());
+    }
+
     private String key(Requirement item) {
         String qualifier = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue()
                 : item instanceof CapabilityRequirement capability ? capability.capabilityKind().jsonValue() : "";
-        String name = item instanceof CapabilityRequirement ? item.name() : item.name().toLowerCase(Locale.ROOT);
+        String name = item instanceof CapabilityRequirement || item instanceof SkillDependencyRequirement
+                ? item.name() : item.name().toLowerCase(Locale.ROOT);
         return item.type() + "\u0000" + qualifier + "\u0000" + name;
     }
 

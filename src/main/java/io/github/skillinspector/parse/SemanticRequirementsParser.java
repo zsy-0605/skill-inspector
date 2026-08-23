@@ -35,7 +35,7 @@ public final class SemanticRequirementsParser {
             Handoff handoff = mapper.readValue(normalized.toFile(), Handoff.class);
             if (handoff == null)
                 throw new SkillParseException("Requirements input must be a JSON object");
-            if (!Set.of("1.0", "1.1").contains(handoff.schemaVersion()))
+            if (!Set.of("1.0", "1.1", "1.2").contains(handoff.schemaVersion()))
                 throw new SkillParseException("Unsupported requirements schemaVersion: " + handoff.schemaVersion());
             if (handoff.requirements() == null)
                 throw new SkillParseException("Requirements input must contain `requirements`");
@@ -62,22 +62,29 @@ public final class SemanticRequirementsParser {
             throw new SkillParseException("Package requirements need ecosystem python, npm, or maven");
         if (entry.type() != RequirementType.PACKAGE && entry.ecosystem() != null)
             throw new SkillParseException("ecosystem is only valid for package requirements");
-        if (entry.type() == RequirementType.CAPABILITY && !"1.1".equals(schemaVersion))
-            throw new SkillParseException("Capability requirements need semantic handoff schemaVersion 1.1");
+        if (entry.type() == RequirementType.CAPABILITY && "1.0".equals(schemaVersion))
+            throw new SkillParseException("Capability requirements need semantic handoff schemaVersion 1.1 or 1.2");
         if (entry.type() == RequirementType.CAPABILITY && entry.capabilityKind() == null)
             throw new SkillParseException("Capability requirements need capabilityKind mcpServer, tool, or capability");
         if (entry.type() != RequirementType.CAPABILITY && entry.capabilityKind() != null)
             throw new SkillParseException("capabilityKind is only valid for capability requirements");
+        if (entry.type() == RequirementType.SKILL && !"1.2".equals(schemaVersion))
+            throw new SkillParseException("Skill requirements need semantic handoff schemaVersion 1.2");
+        if (entry.type() != RequirementType.SKILL && entry.namespace() != null)
+            throw new SkillParseException("namespace is only valid for skill requirements");
         Evidence evidenceInput = evidence(entry);
         if (entry.necessity() == null || entry.confidence() == null || evidenceInput.file() == null || evidenceInput.file().isBlank())
             throw new SkillParseException("Each semantic requirement needs necessity, confidence, and evidence");
-        if (entry.type() == RequirementType.PACKAGE && entry.version() != null && entry.required() != null
+        if ((entry.type() == RequirementType.PACKAGE || entry.type() == RequirementType.SKILL)
+                && entry.version() != null && entry.required() != null
                 && !entry.version().equals(entry.required()))
-            throw new SkillParseException("Package version and required constraints must match when both are present");
-        String required = entry.type() == RequirementType.PACKAGE && entry.version() != null ? entry.version() : entry.required();
+            throw new SkillParseException("version and required constraints must match when both are present");
+        String required = (entry.type() == RequirementType.PACKAGE || entry.type() == RequirementType.SKILL)
+                && entry.version() != null ? entry.version() : entry.required();
         if (required == null || required.isBlank())
             required = entry.type() == RequirementType.CAPABILITY ? "available"
-                    : entry.type() == RequirementType.RUNTIME || entry.type() == RequirementType.PACKAGE ? "*" : "present";
+                    : entry.type() == RequirementType.RUNTIME || entry.type() == RequirementType.PACKAGE
+                    || entry.type() == RequirementType.SKILL ? "*" : "present";
         if (entry.type() == RequirementType.CAPABILITY && !"available".equals(required))
             throw new SkillParseException("Capability requirements only support required `available`");
         if (required.length() > MAX_TEXT_LENGTH)
@@ -94,6 +101,9 @@ public final class SemanticRequirementsParser {
         if (entry.type() == RequirementType.CAPABILITY)
             return CapabilityRequirement.inferred(entry.capabilityKind(), entry.name().strip(), entry.necessity(),
                     entry.confidence(), evidence, matched, rule);
+        if (entry.type() == RequirementType.SKILL)
+            return SkillDependencyRequirement.inferred(new SkillIdentity(entry.namespace(), entry.name().strip()),
+                    required.strip(), entry.necessity(), entry.confidence(), evidence, matched, rule);
         return SkillRequirement.inferred(entry.type(), entry.name().strip(), required.strip(), entry.necessity(),
                     entry.confidence(), evidence, matched, rule);
     }
@@ -132,7 +142,7 @@ public final class SemanticRequirementsParser {
 
     private record Handoff(String schemaVersion, List<Entry> requirements) {}
     private record Entry(RequirementType type, PackageEcosystem ecosystem, CapabilityKind capabilityKind,
-                         String name, String required, String version,
+                         String namespace, String name, String required, String version,
                          RequirementNecessity necessity, RequirementSource source, Confidence confidence, JsonNode evidence,
                          String matched, String inferenceRule) {}
     private record Evidence(String file, String matched, String inferenceRule) {}

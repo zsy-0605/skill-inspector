@@ -128,7 +128,9 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
         item["type"],
         item.get("ecosystem", "").lower() if item["type"] == "package"
         else item.get("capabilityKind", "") if item["type"] == "capability" else "",
-        item["name"] if item["type"] == "capability" else item["name"].lower())
+        ((item.get("namespace") + "/" + item["name"]) if item["type"] == "skill"
+         and item.get("namespace") and "/" not in item["name"] else item["name"])
+        if item["type"] in {"capability", "skill"} else item["name"].lower())
     for skill_id, label in labels.items():
         if skill_id not in by_id:
             continue

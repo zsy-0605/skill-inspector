@@ -88,4 +88,25 @@ class SkillParserTest {
         assertThat(capabilities.getFirst().necessity()).isEqualTo(RequirementNecessity.REQUIRED);
         assertThat(capabilities.get(1).necessity()).isEqualTo(RequirementNecessity.CONDITIONAL);
     }
+
+    @Test void parsesDeclaredSkillDependenciesFromFrontmatter() throws Exception {
+        Files.writeString(temp.resolve("SKILL.md"), """
+                ---
+                name: composite
+                compatibility:
+                  skills:
+                    - namespace: acme
+                      name: pdf-analysis
+                      version: ">=1.2"
+                      necessity: required
+                    - name: fallback
+                      necessity: conditional
+                ---
+                """);
+        var dependencies = new SkillParser().parse(temp).requirements().stream()
+                .filter(SkillDependencyRequirement.class::isInstance).map(SkillDependencyRequirement.class::cast).toList();
+        assertThat(dependencies).hasSize(2);
+        assertThat(dependencies.getFirst().identity().canonicalId()).isEqualTo("acme/pdf-analysis");
+        assertThat(dependencies.get(1).necessity()).isEqualTo(RequirementNecessity.CONDITIONAL);
+    }
 }

@@ -90,6 +90,13 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
             if item.get("capabilityKind") not in {"mcpServer", "tool", "capability"}:
                 raise ValueError(f"Capability requirement needs a supported capabilityKind: {skill_id}/{name}")
             item["required"] = "available"
+        elif kind == "skill":
+            namespace = item.get("namespace")
+            if namespace:
+                namespace = namespace.strip()
+                item["namespace"] = namespace
+            item["version"] = item.get("version") or item.get("required") or "*"
+            item["required"] = item["version"]
         elif kind == "operatingSystem":
             name = lowered
             if name not in SUPPORTED_OPERATING_SYSTEMS:
@@ -105,14 +112,17 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
             if candidate.is_absolute() and str(candidate).startswith("/tmp"):
                 continue
         item["name"] = name
-        if kind != "package":
+        if kind not in {"package", "skill"}:
             item.pop("ecosystem", None)
             item.pop("version", None)
         if kind != "capability":
             item.pop("capabilityKind", None)
+        if kind != "skill":
+            item.pop("namespace", None)
         item["necessity"] = NECESSITY_OVERRIDES.get((skill_id, kind, name), item["necessity"])
-        qualifier = str(item.get("ecosystem", "") if kind == "package" else item.get("capabilityKind", ""))
-        key = (kind, qualifier, name if kind == "capability" else name.lower())
+        qualifier = str(item.get("ecosystem", "") if kind == "package" else item.get("capabilityKind", "")
+                        if kind == "capability" else item.get("namespace", "") if kind == "skill" else "")
+        key = (kind, qualifier, name if kind in {"capability", "skill"} else name.lower())
         previous = normalized.get(key)
         if previous is None or necessity_rank[item["necessity"]] > necessity_rank[previous["necessity"]]:
             normalized[key] = item

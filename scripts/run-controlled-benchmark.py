@@ -77,6 +77,8 @@ def prediction_requirement(item: dict[str, Any], source: str | None = None) -> d
         result["ecosystem"] = item["ecosystem"]
     if item.get("type") == "capability" and item.get("capabilityKind"):
         result["capabilityKind"] = item["capabilityKind"]
+    if item.get("type") == "skill" and (item.get("namespace") or item.get("skillNamespace")):
+        result["namespace"] = item.get("namespace") or item["skillNamespace"]
     if item.get("version") or item.get("required"):
         result["required"] = item.get("version") or item.get("required")
     if source or item.get("source"):
@@ -99,7 +101,11 @@ def semantic_handoff(payload: dict[str, Any]) -> dict[str, Any]:
             requirement.pop("ecosystem", None)
         if requirement.get("type") != "capability":
             requirement.pop("capabilityKind", None)
-    if any(item.get("type") == "capability" for item in handoff.get("requirements", [])):
+        if requirement.get("type") != "skill":
+            requirement.pop("namespace", None)
+    if any(item.get("type") == "skill" for item in handoff.get("requirements", [])):
+        handoff["schemaVersion"] = "1.2"
+    elif any(item.get("type") == "capability" for item in handoff.get("requirements", [])):
         handoff["schemaVersion"] = "1.1"
     return handoff
 
@@ -197,7 +203,7 @@ def main() -> int:
     generated = dt.datetime.now(dt.timezone.utc).isoformat()
     for method in METHODS:
         for run_number in range(1, args.runs + 1):
-            payload = {"schemaVersion": "1.1", "datasetVersion": dataset["datasetVersion"],
+            payload = {"schemaVersion": "1.2", "datasetVersion": dataset["datasetVersion"],
                        "method": method, "model": args.model, "run": run_number,
                        "environment": environment["id"], "generatedAt": generated,
                        "skills": [completed[(method, run_number, skill_id)] for skill_id, _ in skills]}

@@ -115,4 +115,22 @@ class SemanticRequirementsParserTest {
         assertThatThrownBy(() -> new SemanticRequirementsParser().parse(input))
                 .isInstanceOf(SkillParseException.class).hasMessageContaining("schemaVersion 1.1");
     }
+
+    @Test void parsesSkillDependencyOnlyFromHandoff12() throws Exception {
+        Path input = temp.resolve("skills.json");
+        Files.writeString(input, """
+                {"schemaVersion":"1.2","requirements":[{
+                  "type":"skill","namespace":"acme","name":"pdf-analysis","version":">=1.2",
+                  "necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH",
+                  "evidence":{"file":"SKILL.md:20","matched":"Use acme/pdf-analysis",
+                    "inferenceRule":"SEMANTIC_SKILL_REFERENCE"}
+                }]}
+                """);
+        SkillDependencyRequirement requirement = (SkillDependencyRequirement) new SemanticRequirementsParser().parse(input).getFirst();
+        assertThat(requirement.identity().canonicalId()).isEqualTo("acme/pdf-analysis");
+        assertThat(requirement.requiredVersion()).isEqualTo(">=1.2");
+
+        Files.writeString(input, Files.readString(input).replace("\"1.2\"", "\"1.1\""));
+        assertThatThrownBy(() -> new SemanticRequirementsParser().parse(input)).hasMessageContaining("schemaVersion 1.2");
+    }
 }

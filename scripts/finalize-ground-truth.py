@@ -32,14 +32,16 @@ def handoff(dependencies: list[dict[str, Any]]) -> dict[str, Any]:
             continue
         required = item.get("required")
         if not required:
-            required = "available" if item["type"] == "capability" else "*" if item["type"] in {"runtime", "package"} else "present"
+            required = "available" if item["type"] == "capability" else "*" if item["type"] in {"runtime", "package", "skill"} else "present"
         requirement = {"type": item["type"], "name": item["name"], "required": required,
                              "necessity": item["necessity"], "source": "INFERRED", "confidence": "HIGH",
                              "evidence": item["evidence"], "inferenceRule": "reviewed-ground-truth"}
         if item["type"] == "package": requirement["ecosystem"] = item["ecosystem"]
         if item["type"] == "capability": requirement["capabilityKind"] = item["capabilityKind"]
+        if item["type"] == "skill" and item.get("namespace"): requirement["namespace"] = item["namespace"]
         requirements.append(requirement)
-    schema_version = "1.1" if any(item["type"] == "capability" for item in requirements) else "1.0"
+    schema_version = ("1.2" if any(item["type"] == "skill" for item in requirements)
+                      else "1.1" if any(item["type"] == "capability" for item in requirements) else "1.0")
     return {"schemaVersion": schema_version, "requirements": requirements}
 
 

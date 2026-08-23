@@ -2,8 +2,8 @@
 
 The regression suite has three layers:
 
-1. JUnit checks deterministic version, command, environment, file, directory, OS, parsing, scoring, and secret-redaction behavior.
-2. `scripts/run-evals.sh` executes synthetic Skills covering READY, WARNING, and FAIL, including a cross-platform generated OS mismatch.
+1. JUnit checks deterministic version, command, environment, file, directory, OS, package, capability, Skill graph, parsing, scoring, and secret-redaction behavior.
+2. `scripts/run-evals.sh` executes 41 synthetic Skills covering READY, WARNING, FAIL, and UNKNOWN, including 12 V0.4 Skill dependency cases.
 3. `cases/skill-trigger-cases.yaml` is the fixed synthetic prompt set for trigger and diagnosis behavior.
 4. [`benchmark/`](../benchmark/README.md) contains the 30-Skill, three-run controlled Agent-only versus Agent + Inspector experiment.
 

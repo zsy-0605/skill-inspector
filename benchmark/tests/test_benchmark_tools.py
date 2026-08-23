@@ -44,6 +44,17 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual(3, sum(sample["classification"] == "NEGATIVE" for sample in pilot["samples"]))
         self.assertGreaterEqual(sum(len(sample["requirements"]) for sample in pilot["samples"]), 6)
 
+    def test_v04_skill_dependency_pilot_reuses_fixed_corpus(self):
+        pilot = json.loads((PROJECT / "benchmark/annotations/v0.4-skill-dependency-pilot.json").read_text(encoding="utf-8"))
+        dataset = json.loads((PROJECT / "benchmark/dataset.json").read_text(encoding="utf-8"))
+        dataset_ids = {skill["id"] for repo in dataset["repositories"] for skill in repo["skills"]}
+        sample_ids = [sample["skillId"] for sample in pilot["samples"]]
+        self.assertEqual(5, len(sample_ids))
+        self.assertEqual(5, len(set(sample_ids)))
+        self.assertTrue(set(sample_ids) <= dataset_ids)
+        self.assertEqual(2, sum(bool(sample["dependencies"]) for sample in pilot["samples"]))
+        self.assertEqual(3, sum(not sample["dependencies"] for sample in pilot["samples"]))
+
     def test_capability_ground_truth_preserves_exact_name_and_kind(self):
         payload = {"requirements": [{"type": "capability", "ecosystem": None, "capabilityKind": "tool",
                                       "name": "ExactTool", "version": "available", "necessity": "REQUIRED",
@@ -264,6 +275,35 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual("1.1", handoff["schemaVersion"])
         self.assertEqual("tool", handoff["requirements"][0]["capabilityKind"])
         self.assertNotIn("ecosystem", handoff["requirements"][0])
+
+    def test_semantic_handoff_upgrades_skill_dependencies_to_12(self):
+        payload = {"schemaVersion": "1.1", "requirements": [
+            {"type": "skill", "namespace": "acme", "capabilityKind": None, "ecosystem": None,
+             "name": "reader", "required": ">=1"}
+        ]}
+        handoff = controlled.semantic_handoff(payload)
+        self.assertEqual("1.2", handoff["schemaVersion"])
+        self.assertEqual("acme", handoff["requirements"][0]["namespace"])
+        self.assertNotIn("capabilityKind", handoff["requirements"][0])
+
+    def test_scoring_reports_exact_skill_identity_metrics(self):
+        truth = {"datasetVersion": "v4", "skills": [{
+            "id": "root", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "NOT_READY",
+            "blockingDependencies": [{"type": "skill", "namespace": "acme", "name": "reader"}],
+            "dependencies": [{"type": "skill", "namespace": "acme", "name": "reader",
+                              "necessity": "REQUIRED", "inScope": True, "evidence": "SKILL.md:1"}]
+        }]}
+        prediction = {"datasetVersion": "v4", "method": "AGENT_WITH_INSPECTOR", "model": "test", "run": 1,
+                      "skills": [{"id": "root", "readiness": "NOT_READY", "dependencies": [
+                          {"type": "skill", "name": "acme/reader", "status": "FAIL",
+                           "actual": "Missing from COMPLETE inventory", "inScope": True, "evidence": "SKILL.md:1"}
+                      ]}]}
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
+        self.assertEqual("100.0%", result["skillRecall"])
+        self.assertEqual("100.0%", result["skillPrecision"])
+        self.assertEqual("100.0%", result["requiredSkillRecall"])
+        self.assertEqual("0.0%", result["skillFalseReady"])
+        self.assertEqual("100.0%", result["skillInventoryCoverage"])
 
     def test_prediction_requirement_removes_ecosystem_from_non_packages(self):
         runtime = controlled.prediction_requirement(

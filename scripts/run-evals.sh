@@ -3,6 +3,8 @@ set -uo pipefail
 
 project_dir=$(cd -- "$(dirname -- "${BASH_SOURCE[0]}")/.." && pwd)
 jar="$project_dir/target/skill-inspector.jar"
+java_bin=java
+if [[ -n "${JAVA_HOME:-}" && -x "$JAVA_HOME/bin/java" ]]; then java_bin="$JAVA_HOME/bin/java"; fi
 passed=0
 cases=0
 failures=()
@@ -20,7 +22,7 @@ assert_case() {
   local name=$1 expected_exit=$2 expected_text=$3 target=$4
   local output exit_code
   cases=$((cases + 1))
-  output=$(java -jar "$jar" inspect "$target" --json 2>&1)
+  output=$("$java_bin" -jar "$jar" inspect "$target" --json 2>&1)
   exit_code=$?
   if [[ $exit_code -eq $expected_exit && "$output" == *"$expected_text"* ]]; then
     passed=$((passed + 1))
@@ -34,9 +36,26 @@ assert_capability_case() {
   local output exit_code
   cases=$((cases + 1))
   if [[ -n "$snapshot" ]]; then
-    output=$(java -jar "$jar" inspect "$target" --capabilities "$snapshot" --json 2>&1)
+    output=$("$java_bin" -jar "$jar" inspect "$target" --capabilities "$snapshot" --json 2>&1)
   else
-    output=$(java -jar "$jar" inspect "$target" --json 2>&1)
+    output=$("$java_bin" -jar "$jar" inspect "$target" --json 2>&1)
+  fi
+  exit_code=$?
+  if [[ $exit_code -eq $expected_exit && "$output" == *"$expected_text"* ]]; then
+    passed=$((passed + 1))
+  else
+    failures+=("$name (exit=$exit_code; expected text: $expected_text)")
+  fi
+}
+
+assert_skill_case() {
+  local name=$1 expected_exit=$2 expected_text=$3 target=$4 inventory=${5:-}
+  local output exit_code
+  cases=$((cases + 1))
+  if [[ -n "$inventory" ]]; then
+    output=$("$java_bin" -jar "$jar" inspect "$target" --skills "$inventory" --json 2>&1)
+  else
+    output=$("$java_bin" -jar "$jar" inspect "$target" --json 2>&1)
   fi
   exit_code=$?
   if [[ $exit_code -eq $expected_exit && "$output" == *"$expected_text"* ]]; then
@@ -56,7 +75,7 @@ assert_case "inferred dependency" 0 '"source" : "INFERRED"' "$project_dir/exampl
 assert_case "static only" 0 '"skill" : "must-not-execute-skill"' "$project_dir/examples/must-not-execute-skill"
 
 cases=$((cases + 1))
-semantic_output=$(java -jar "$jar" verify "$project_dir/examples/semantic-handoff-skill" \
+semantic_output=$("$java_bin" -jar "$jar" verify "$project_dir/examples/semantic-handoff-skill" \
   --requirements "$project_dir/examples/semantic-handoff-skill/requirements.json" --json 2>&1)
 semantic_exit=$?
 if [[ $semantic_exit -eq 2 && "$semantic_output" == *'"necessity" : "REQUIRED"'* && "$semantic_output" == *'"source" : "INFERRED"'* ]]; then
@@ -197,12 +216,101 @@ mkdir -p "$no_execution/scripts"
 printf '%s\n' '#!/bin/sh' 'touch SHOULD_NOT_EXIST' > "$no_execution/scripts/danger.sh"
 write_snapshot "$no_execution/snapshot.json" COMPLETE COMPLETE PARTIAL '[{"capabilityKind":"tool","name":"dangerousTool","aliases":[],"availability":"AVAILABLE","source":"RUNTIME_INVENTORY"}]'
 cases=$((cases + 1))
-no_execution_output=$(java -jar "$jar" inspect "$no_execution" --capabilities "$no_execution/snapshot.json" --json 2>&1)
+no_execution_output=$("$java_bin" -jar "$jar" inspect "$no_execution" --capabilities "$no_execution/snapshot.json" --json 2>&1)
 no_execution_exit=$?
 if [[ $no_execution_exit -eq 0 && "$no_execution_output" == *'"status" : "PASS"'* && ! -e "$no_execution/SHOULD_NOT_EXIST" ]]; then
   passed=$((passed + 1))
 else
   failures+=("capability inspection does not execute (exit=$no_execution_exit or marker created)")
+fi
+
+skill_cases="$temp_case/skill-cases"
+mkdir -p "$skill_cases"
+
+write_skill_dependency() {
+  local target=$1 dependency=$2 version=$3 necessity=$4
+  mkdir -p "$target"
+  printf '%s\n' '---' "name: $(basename "$target")" 'compatibility:' '  skills:' \
+    "    - name: $dependency" "      version: \"$version\"" "      necessity: $necessity" \
+    '---' '# Skill dependency fixture' > "$target/SKILL.md"
+}
+
+direct="$skill_cases/direct"
+write_skill_dependency "$direct" child '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"child"},"version":"1.0.0","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[]}]}' > "$direct/inventory.json"
+assert_skill_case "required Skill available" 0 '"status" : "PASS"' "$direct" "$direct/inventory.json"
+
+complete_skill_missing="$skill_cases/complete-missing"
+write_skill_dependency "$complete_skill_missing" absent '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[]}' > "$complete_skill_missing/inventory.json"
+assert_skill_case "complete inventory missing required Skill" 2 'Missing from COMPLETE inventory' "$complete_skill_missing" "$complete_skill_missing/inventory.json"
+
+partial_skill_missing="$skill_cases/partial-missing"
+write_skill_dependency "$partial_skill_missing" unknown-skill '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"PARTIAL","skills":[]}' > "$partial_skill_missing/inventory.json"
+assert_skill_case "partial inventory missing Skill" 0 '"status" : "UNKNOWN"' "$partial_skill_missing" "$partial_skill_missing/inventory.json"
+
+optional_skill_missing="$skill_cases/optional-missing"
+write_skill_dependency "$optional_skill_missing" absent '*' optional
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[]}' > "$optional_skill_missing/inventory.json"
+assert_skill_case "optional Skill missing" 0 '"status" : "WARNING"' "$optional_skill_missing" "$optional_skill_missing/inventory.json"
+
+version_match="$skill_cases/version-match"
+write_skill_dependency "$version_match" versioned '>=1.2' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"versioned"},"version":"1.4.0","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[]}]}' > "$version_match/inventory.json"
+assert_skill_case "Skill version matches" 0 'satisfies >=1.2' "$version_match" "$version_match/inventory.json"
+
+version_fail="$skill_cases/version-fail"
+write_skill_dependency "$version_fail" versioned '>=2' required
+cp "$version_match/inventory.json" "$version_fail/inventory.json"
+assert_skill_case "Skill version mismatch" 2 'does not satisfy >=2' "$version_fail" "$version_fail/inventory.json"
+
+version_unknown="$skill_cases/version-unknown"
+write_skill_dependency "$version_unknown" versioned '>=1' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"versioned"},"availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[]}]}' > "$version_unknown/inventory.json"
+assert_skill_case "unknown Skill version" 0 'version cannot be evaluated' "$version_unknown" "$version_unknown/inventory.json"
+
+transitive="$skill_cases/transitive"
+write_skill_dependency "$transitive" parent '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"parent"},"version":"1","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[{"identity":{"name":"child"},"version":"1.x","necessity":"REQUIRED","source":"DECLARED","evidence":"parent/SKILL.md"}]},{"identity":{"name":"child"},"version":"1.8","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[]}]}' > "$transitive/inventory.json"
+assert_skill_case "transitive Skill pass" 0 'transitive -> parent -> child' "$transitive" "$transitive/inventory.json"
+
+transitive_missing="$skill_cases/transitive-missing"
+write_skill_dependency "$transitive_missing" parent '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"parent"},"version":"1","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[{"identity":{"name":"missing-child"},"necessity":"REQUIRED","source":"DECLARED","evidence":"parent/SKILL.md"}]}]}' > "$transitive_missing/inventory.json"
+assert_skill_case "transitive Skill missing with path" 2 'transitive-missing -> parent -> missing-child' "$transitive_missing" "$transitive_missing/inventory.json"
+
+cycle="$skill_cases/cycle"
+write_skill_dependency "$cycle" a '*' required
+printf '%s\n' '{"schemaVersion":"1.0","coverage":"COMPLETE","skills":[{"identity":{"name":"a"},"version":"1","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[{"identity":{"name":"b"},"necessity":"REQUIRED","source":"DECLARED","evidence":"a/SKILL.md"}]},{"identity":{"name":"b"},"version":"1","availability":"AVAILABLE","source":"RUNTIME_INVENTORY","dependencyCoverage":"COMPLETE","dependencies":[{"identity":{"name":"a"},"necessity":"REQUIRED","source":"DECLARED","evidence":"b/SKILL.md"}]}]}' > "$cycle/inventory.json"
+assert_skill_case "required Skill cycle" 2 '"resolutionKind" : "GRAPH_CYCLE"' "$cycle" "$cycle/inventory.json"
+
+handoff_skill="$skill_cases/handoff"
+mkdir -p "$handoff_skill"
+printf '%s\n' '---' 'name: handoff' '---' > "$handoff_skill/SKILL.md"
+printf '%s\n' '{"schemaVersion":"1.2","requirements":[{"type":"skill","name":"child","version":"*","necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH","evidence":"SKILL.md:1"}]}' > "$handoff_skill/v12.json"
+printf '%s\n' '{"schemaVersion":"1.0","requirements":[{"type":"command","name":"sh","necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH","evidence":"SKILL.md:1"}]}' > "$handoff_skill/v10.json"
+printf '%s\n' '{"schemaVersion":"1.1","requirements":[{"type":"capability","capabilityKind":"tool","name":"unknown","required":"available","necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH","evidence":"SKILL.md:1"}]}' > "$handoff_skill/v11.json"
+cases=$((cases + 1))
+handoff12=$("$java_bin" -jar "$jar" verify "$handoff_skill" --requirements "$handoff_skill/v12.json" --skills "$direct/inventory.json" --json 2>&1); handoff12_exit=$?
+handoff10=$("$java_bin" -jar "$jar" verify "$handoff_skill" --requirements "$handoff_skill/v10.json" --json 2>&1); handoff10_exit=$?
+handoff11=$("$java_bin" -jar "$jar" verify "$handoff_skill" --requirements "$handoff_skill/v11.json" --json 2>&1); handoff11_exit=$?
+if [[ $handoff12_exit -eq 0 && $handoff10_exit -eq 0 && $handoff11_exit -eq 0 && "$handoff12" == *'"type" : "skill"'* ]]; then
+  passed=$((passed + 1))
+else
+  failures+=("handoff 1.2 and 1.0/1.1 compatibility")
+fi
+
+wording="$skill_cases/wording-negative"
+mkdir -p "$wording/scripts"
+printf '%s\n' '---' 'name: wording-negative' '---' '# Build a Skill or use available Skills when helpful.' > "$wording/SKILL.md"
+printf '%s\n' '#!/bin/sh' 'touch SHOULD_NOT_EXIST' > "$wording/scripts/danger.sh"
+cases=$((cases + 1))
+wording_output=$("$java_bin" -jar "$jar" inspect "$wording" --json 2>&1); wording_exit=$?
+if [[ $wording_exit -eq 0 && "$wording_output" != *'"type" : "skill"'* && ! -e "$wording/SHOULD_NOT_EXIST" ]]; then
+  passed=$((passed + 1))
+else
+  failures+=("generic Skill wording is negative and scripts are not executed")
 fi
 
 echo
@@ -215,6 +323,7 @@ echo "Inference Precision:   100% (labeled fixture)"
 echo "Environment Accuracy:  100%"
 echo "Package Cases:            8"
 echo "Capability Cases:        10"
+echo "Skill Dependency Cases:  12"
 echo "False Ready Rate:        0%"
 echo "False Block Rate:        0%"
 echo

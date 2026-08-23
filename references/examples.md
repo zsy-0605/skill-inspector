@@ -109,3 +109,29 @@ java -jar target/skill-inspector.jar verify ./examples/capability-skill \
 ```
 
 The result reports `resolvedCapability: "mcp__docs__search"` for the explicit alias. `AVAILABLE` means only that the current runtime inventory advertises the tool; it does not prove permissions, authentication, parameter compatibility, network health, or successful execution.
+
+## Skill dependency inventory
+
+```json
+{
+  "schemaVersion": "1.0",
+  "coverage": "COMPLETE",
+  "skills": [{
+    "identity": {"namespace": "acme", "name": "data-extractor"},
+    "version": "1.4.0",
+    "availability": "AVAILABLE",
+    "source": "RUNTIME_INVENTORY",
+    "dependencyCoverage": "COMPLETE",
+    "dependencies": []
+  }]
+}
+```
+
+Run:
+
+```bash
+java -jar target/skill-inspector.jar inspect ./examples/skill-dependency-skill \
+  --skills ./examples/skill-dependency-skill/skill-inventory.json --json
+```
+
+The check reports `dependencyPath`, `dependencyDepth`, the resolved identity/version, and inventory source. Only the supplied graph is traversed; no Skill is searched for, installed, activated, or executed.

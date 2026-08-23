@@ -10,11 +10,12 @@
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "ecosystem", "capabilityKind", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
+        "required": ["type", "ecosystem", "capabilityKind", "namespace", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
         "properties": {
-          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability"]},
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability", "skill"]},
           "ecosystem": {"type": ["string", "null"], "enum": ["python", "npm", "maven", null]},
           "capabilityKind": {"type": ["string", "null"], "enum": ["mcpServer", "tool", "capability", null]},
+          "namespace": {"type": ["string", "null"]},
           "name": {"type": "string"},
           "required": {"type": ["string", "null"]},
           "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
@@ -25,7 +26,9 @@
           "inferenceRule": {"type": "string"}
         },
         "allOf": [{"if": {"properties": {"type": {"const": "capability"}}},
-                   "then": {"properties": {"capabilityKind": {"type": "string"}, "required": {"const": "available"}}}}]
+                   "then": {"properties": {"capabilityKind": {"type": "string"}, "required": {"const": "available"}}}},
+                  {"if": {"properties": {"type": {"const": "skill"}}},
+                   "else": {"properties": {"namespace": {"type": "null"}}}}]
       }
     }
   }

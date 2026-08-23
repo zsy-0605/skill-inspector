@@ -69,11 +69,32 @@ public final class SkillParser {
         parseList(compatibility.get("directories"), RequirementType.DIRECTORY, out);
         parsePackages(compatibility.get("packages"), out);
         parseCapabilities(compatibility.get("capabilities"), out);
+        parseSkills(compatibility.get("skills"), out);
         Object os = compatibility.get("os");
         if (os == null) os = compatibility.get("supportedOs");
         if (os instanceof Collection<?> values) {
             String joined = values.stream().map(this::stringValue).map(String::toLowerCase).reduce((a, b) -> a + "," + b).orElse("");
             out.add(SkillRequirement.declared(RequirementType.OPERATING_SYSTEM, "operating-system", joined, false));
+        }
+    }
+
+    private void parseSkills(Object raw, List<Requirement> out) {
+        if (!(raw instanceof Collection<?> values)) return;
+        for (Object value : values) {
+            if (!(value instanceof Map<?, ?> map) || map.get("name") == null)
+                throw new SkillParseException("skill entries require name");
+            RequirementNecessity necessity;
+            if (map.containsKey("necessity")) {
+                try { necessity = RequirementNecessity.valueOf(stringValue(map.get("necessity")).toUpperCase(Locale.ROOT)); }
+                catch (IllegalArgumentException error) { throw new SkillParseException("Invalid skill necessity: " + map.get("necessity")); }
+            } else necessity = Boolean.parseBoolean(stringValue(map.containsKey("optional") ? map.get("optional") : false))
+                    ? RequirementNecessity.OPTIONAL : RequirementNecessity.REQUIRED;
+            String version = stringValue(map.containsKey("version") ? map.get("version") : "*").strip();
+            String namespace = map.containsKey("namespace") ? stringValue(map.get("namespace")).strip() : null;
+            try {
+                out.add(SkillDependencyRequirement.declared(new SkillIdentity(namespace, stringValue(map.get("name")).strip()),
+                        version.isEmpty() ? "*" : version, necessity, "SKILL.md frontmatter"));
+            } catch (IllegalArgumentException error) { throw new SkillParseException(error.getMessage()); }
         }
     }
 

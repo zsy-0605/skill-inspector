@@ -34,7 +34,8 @@ Skill Inspector 是一个 **Agent Skill**，用于在安装、启用、执行、
           ├── 命令与环境变量
           ├── 文件、目录与操作系统
           ├── Python / npm / Maven 包
-          └── MCP Server / Agent Tool / Capability Snapshot
+          ├── MCP Server / Agent Tool / Capability Snapshot
+          └── Skill Inventory / 只读依赖图
                     │
                     v
            READY / WARNING / NOT READY
@@ -89,6 +90,8 @@ V0.2 会静态读取根目录的 `requirements.txt`、`pyproject.toml`、`packag
 
 V0.3 增加平台无关的 Runtime Capability Snapshot，用于判断当前会话是否明确宣告某个 MCP Server、Agent Tool 或抽象 Capability 可用。Inspector 只读取外部 JSON 清单，不读取任何平台的私有配置，不启动或连接 MCP Server，也不枚举、调用 Tool。`AVAILABLE` 只代表当前运行时清单宣告可用，不保证权限、认证、参数、网络或实际执行成功。
 
+V0.4 开发版增加只读 Skill Inventory：验证直接与传递 Skill 依赖、最小版本约束、依赖路径和循环。`COMPLETE` 与 `PARTIAL` 明确区分“缺失”和“信息未知”；图不完整时绝不会得到 READY。这里的 Resolution 只是遍历调用方提供的 JSON：**Inspection ≠ Resolution ≠ Execution**。
+
 ### 环境要求与构建
 
 - 唯一的系统构建前提是 JDK 21+
@@ -132,6 +135,15 @@ java -jar target/skill-inspector.jar verify ./examples/capability-skill \
 
 Snapshot 由 [`references/runtime-capabilities.schema.json`](references/runtime-capabilities.schema.json) 定义。每种能力的清单覆盖度必须标为 `COMPLETE` 或 `PARTIAL`：完整清单中未出现的必需能力会失败，部分清单中未出现的能力保持 `UNKNOWN`；无 Snapshot 时同样保持 `UNKNOWN`，不会假装 READY。名称精确且区分大小写，只接受 Snapshot 明示的 alias。
 
+验证直接和传递 Skill 依赖：
+
+```bash
+java -jar target/skill-inspector.jar inspect ./examples/skill-dependency-skill \
+  --skills ./examples/skill-dependency-skill/skill-inventory.json --json
+```
+
+Skill Inventory 由 [`references/skill-inventory.schema.json`](references/skill-inventory.schema.json) 定义。Inspector 不扫描任意 Skill 目录、不安装或激活 Skill、不递归检查子 Skill 的 Runtime/Package，也不做 Capability Provider Resolution。
+
 交接格式由 [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json) 定义。`source` 表示依赖是如何被发现的，`necessity` 则独立表示该依赖属于 `REQUIRED`、`OPTIONAL` 还是 `CONDITIONAL`。因此，缺失的必需语义依赖可以阻止就绪，同时不会被错误描述成 Skill 已明确声明的依赖。
 
 退出码：READY/WARNING 为 `0`，兼容性失败为 `2`，无效输入或检查错误为 `1`。调用方还必须读取 `status`/`readiness`；WARNING 并不等于已经就绪。
@@ -155,9 +167,14 @@ compatibility:
     - capabilityKind: tool
       name: search_docs
       necessity: conditional
+  skills:
+    - namespace: acme
+      name: data-extractor
+      version: ">=1.2"
+      necessity: required
 ```
 
-该扩展是可选的、便于人工阅读，并且不会影响忽略未知字段的运行时。对象形式、可选依赖、Snapshot 状态、评分方式和 JSON 契约请参阅 [V0.3 规范](references/compatibility-spec.md)。
+该扩展是可选的、便于人工阅读，并且不会影响忽略未知字段的运行时。对象形式、可选依赖、Snapshot/Inventory 状态、评分方式和 JSON 契约请参阅 [V0.4 规范](references/compatibility-spec.md)。
 
 ### 测试与评估
 
@@ -166,7 +183,7 @@ compatibility:
 ./scripts/run-evals.sh
 ```
 
-JUnit 覆盖确定性检查器与解析逻辑。Eval Runner 会构建项目并执行 29 个跨平台合成用例，其中 10 个覆盖 Capability Snapshot 的完整/部分清单、精确名称、显式 alias、UNKNOWN、缺失阻断、冲突拒绝以及“不执行目标代码”原则。触发提示词和基线方法位于 [`evals/`](evals/README.md)。
+JUnit 覆盖确定性检查器与解析逻辑。Eval Runner 会构建项目并执行 41 个跨平台合成用例，其中 10 个覆盖 Capability Snapshot，12 个覆盖 Skill 的直接/传递依赖、版本、路径、循环、覆盖度和“不执行/不激活”原则。触发提示词和基线方法位于 [`evals/`](evals/README.md)。
 
 #### 真实 Skill 受控基准测试
 
@@ -213,12 +230,14 @@ V0.3 当前只完成 10 个确定性 Capability Eval 和 6 个固定真实样本
 - `source` 与 `necessity` 相互独立的 Agent-to-Java 结构化语义交接
 - MCP Server、Agent Tool 与显式 Capability 的 Snapshot 存在性检查
 - `COMPLETE`/`PARTIAL` 覆盖语义、四种可用性状态和显式 alias 匹配
+- Skill Inventory 的直接/传递依赖、最小版本约束、路径、循环和 necessity 传播
 - `DECLARED`/`INFERRED` 溯源、READY/WARNING/NOT READY、透明评分以及文本和 JSON 输出
 
 暂不支持：
 
 - MCP/Tool 主动连接、启动、调用、枚举，以及网络、认证、权限和参数 Schema 验证
-- 自动读取 Agent 私有配置、平台专属适配、远程 Capability Registry 或 Skill-to-Skill 能力检查
+- 自动读取 Agent 私有配置、平台专属适配、远程 Registry 或 Skill-to-Skill Capability Provider Resolution
+- 下载、安装、激活或执行 Skill，以及递归检查子 Skill 的 Runtime/Package
 - 由 Java 进行通用自然语言依赖提取；语义理解由 Agent 负责
 - 自动安装、自动修复或修改目标 Skill
 - 恶意代码、提示词注入、漏洞、病毒或供应链扫描
@@ -234,7 +253,8 @@ V0.3 当前只完成 10 个确定性 Capability Eval 和 6 个固定真实样本
 - **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
 - **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0`。
 - **V0.3：** 平台无关的 MCP、Agent Tool 与 Capability Snapshot 检查——`v0.3.0`。
-- **V0.4：** Skill-to-Skill 依赖。
+- **V0.4：** Skill-to-Skill 直接/传递依赖、最小版本与循环检查——`v0.4.0-rc1`。
+- **V0.5：** Capability Composition / Provider Resolution。
 
 长期方向包括能力图谱、迁移辅助、Skill CI/Registry 集成和基于运行轨迹的演进；这些内容目前仍明确位于项目范围之外。
 
@@ -272,7 +292,8 @@ User: “Can I run this Skill?”
        ├── commands and environment
        ├── files, directories, OS
        ├── Python / npm / Maven packages
-       └── MCP Server / Agent Tool / Capability Snapshot
+       ├── MCP Server / Agent Tool / Capability Snapshot
+       └── Skill Inventory / read-only dependency graph
                  │
                  v
         READY / WARNING / NOT READY
@@ -327,6 +348,8 @@ V0.2 statically reads root-level `requirements.txt`, `pyproject.toml`, `package.
 
 V0.3 adds a platform-neutral Runtime Capability Snapshot for checking whether the current session explicitly advertises an MCP server, Agent tool, or abstract capability. The inspector reads only the external JSON inventory. It does not read private platform configuration, start or connect to MCP servers, enumerate tools, or invoke a tool. `AVAILABLE` means only that the runtime inventory advertises the capability—not that permissions, authentication, parameters, network access, or execution will succeed.
 
+The V0.4 development version adds a read-only Skill Inventory for direct and transitive dependencies, minimal version constraints, dependency paths, and cycles. `COMPLETE` and `PARTIAL` distinguish absence from missing information; an incomplete graph can never become READY. Resolution only traverses caller-provided JSON: **Inspection ≠ Resolution ≠ Execution**.
+
 ### Requirements and build
 
 - JDK 21+ is the only system build prerequisite
@@ -370,6 +393,15 @@ java -jar target/skill-inspector.jar verify ./examples/capability-skill \
 
 The Snapshot contract is [`references/runtime-capabilities.schema.json`](references/runtime-capabilities.schema.json). Coverage for each capability kind is `COMPLETE` or `PARTIAL`: a required capability absent from a complete inventory fails, while absence from a partial inventory stays `UNKNOWN`. No Snapshot is also `UNKNOWN`, never READY. Names are exact and case-sensitive; only aliases explicitly listed in the Snapshot are accepted.
 
+Verify direct and transitive Skill dependencies:
+
+```bash
+java -jar target/skill-inspector.jar inspect ./examples/skill-dependency-skill \
+  --skills ./examples/skill-dependency-skill/skill-inventory.json --json
+```
+
+[`references/skill-inventory.schema.json`](references/skill-inventory.schema.json) defines the inventory. The inspector does not scan arbitrary Skill directories, install/activate Skills, recursively inspect child runtime/package requirements, or resolve capability providers.
+
 The handoff schema is [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json). `source` describes how a requirement was found; `necessity` independently records whether it is `REQUIRED`, `OPTIONAL`, or `CONDITIONAL`. A missing required semantic dependency can therefore block readiness without being misrepresented as a declaration.
 
 Exit codes are `0` for READY/WARNING, `2` for compatibility FAIL, and `1` for invalid input or an inspection error. Callers must also inspect `status`/`readiness`; WARNING is not proof of readiness.
@@ -393,9 +425,14 @@ compatibility:
     - capabilityKind: tool
       name: search_docs
       necessity: conditional
+  skills:
+    - namespace: acme
+      name: data-extractor
+      version: ">=1.2"
+      necessity: required
 ```
 
-The extension is optional, human-readable, and safe for runtimes that ignore unknown fields. See [the V0.3 specification](references/compatibility-spec.md) for object forms, optional dependencies, Snapshot semantics, scoring, and the JSON contract.
+The extension is optional, human-readable, and safe for runtimes that ignore unknown fields. See [the V0.4 specification](references/compatibility-spec.md) for object forms, optional dependencies, Snapshot/Inventory semantics, scoring, and the JSON contract.
 
 ### Tests and evaluations
 
@@ -404,7 +441,7 @@ The extension is optional, human-readable, and safe for runtimes that ignore unk
 ./scripts/run-evals.sh
 ```
 
-JUnit covers deterministic checkers and parsing. The Eval runner builds the project and executes 29 cross-platform synthetic cases, including 10 Capability Snapshot cases for complete/partial inventories, exact names, explicit aliases, UNKNOWN, missing blockers, conflict rejection, and the no-execution invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
+JUnit covers deterministic checkers and parsing. The Eval runner builds the project and executes 41 cross-platform synthetic cases: 10 Capability Snapshot cases and 12 Skill dependency cases covering direct/transitive resolution, versions, paths, cycles, coverage, and the no-execution/no-activation invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
 
 #### Controlled real-world benchmark
 
@@ -451,12 +488,14 @@ Supported:
 - Structured Agent-to-Java semantic handoff with independent source and necessity dimensions
 - Snapshot presence checks for MCP servers, Agent tools, and explicit capabilities
 - `COMPLETE`/`PARTIAL` coverage, four availability states, and explicit alias matching
+- Skill Inventory direct/transitive resolution, minimal versions, paths, cycles, and necessity propagation
 - DECLARED/INFERRED provenance, READY/WARNING/NOT READY, transparent scores, human and JSON output
 
 Not supported:
 
 - Active MCP/tool connection, startup, invocation, enumeration, network, authentication, permission, or parameter-schema checks
-- Private Agent configuration discovery, platform-specific adapters, remote capability registries, or Skill-to-Skill capability checks
+- Private Agent configuration discovery, platform-specific adapters, remote registries, or Skill capability-provider resolution
+- Skill download, installation, activation, execution, or recursive child runtime/package inspection
 - General natural-language dependency extraction in Java; the Agent handles semantic interpretation
 - Automatic installation, remediation, or target modification
 - Malware, prompt-injection, vulnerability, virus, or supply-chain scanning
@@ -472,7 +511,8 @@ The package structure separates `parse`, `model`, `check`, `core`, `report`, and
 - **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
 - **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0`.
 - **V0.3:** Platform-neutral MCP, Agent Tool, and Capability Snapshot checks — `v0.3.0`.
-- **V0.4:** Skill-to-Skill dependencies.
+- **V0.4:** Direct/transitive Skill dependencies, minimal versions, and cycle detection — `v0.4.0-rc1`.
+- **V0.5:** Capability composition/provider resolution.
 
 Longer-term possibilities include a capability graph, migration assistance, Skill CI/registry integration, and trace-based evolution. They intentionally remain outside the current scope.
 

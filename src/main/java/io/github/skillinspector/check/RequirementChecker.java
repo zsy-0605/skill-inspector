@@ -22,6 +22,7 @@ public interface RequirementChecker {
         return new CheckResult(requirement.type(), ecosystem, capabilityKind,
                 capabilityMatch == null ? null : capabilityMatch.resolvedCapability(),
                 capabilityMatch == null ? null : capabilityMatch.source(),
+                null, null, null, null, null, null, null,
                 version, requirement.name(), requirement.required(), actual, status,
                 requirement.source(), requirement.necessity(), requirement.confidence(), requirement.evidence(), requirement.matched(),
                 requirement.inferenceRule(), message);
