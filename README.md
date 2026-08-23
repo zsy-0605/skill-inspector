@@ -253,7 +253,7 @@ V0.3 当前只完成 10 个确定性 Capability Eval 和 6 个固定真实样本
 - **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
 - **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0`。
 - **V0.3：** 平台无关的 MCP、Agent Tool 与 Capability Snapshot 检查——`v0.3.0`。
-- **V0.4：** Skill-to-Skill 直接/传递依赖、最小版本与循环检查——`v0.4.0-rc1`。
+- **V0.4：** Skill-to-Skill 直接/传递依赖、最小版本与循环检查——`v0.4.0`。
 - **V0.5：** Capability Composition / Provider Resolution。
 
 长期方向包括能力图谱、迁移辅助、Skill CI/Registry 集成和基于运行轨迹的演进；这些内容目前仍明确位于项目范围之外。
@@ -511,7 +511,7 @@ The package structure separates `parse`, `model`, `check`, `core`, `report`, and
 - **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
 - **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0`.
 - **V0.3:** Platform-neutral MCP, Agent Tool, and Capability Snapshot checks — `v0.3.0`.
-- **V0.4:** Direct/transitive Skill dependencies, minimal versions, and cycle detection — `v0.4.0-rc1`.
+- **V0.4:** Direct/transitive Skill dependencies, minimal versions, and cycle detection — `v0.4.0`.
 - **V0.5:** Capability composition/provider resolution.
 
 Longer-term possibilities include a capability graph, migration assistance, Skill CI/registry integration, and trace-based evolution. They intentionally remain outside the current scope.
