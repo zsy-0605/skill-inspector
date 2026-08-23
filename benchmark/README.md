@@ -66,6 +66,6 @@ The published ground truth is maintainer-reviewed. Future corpus changes must re
 
 ## Metrics
 
-The scorer reports dependency recall/precision, required-dependency recall, exact compatibility classification accuracy, false-ready and false-block rates, blocking-dependency recall, and diagnosis completeness. V0.2 additionally reports package recall, package precision, required-package recall, package false ready, and package `N`. Diagnosis completeness is the share of NOT READY cases where every true blocker was reported; it prevents a correct overall classification from hiding an incomplete diagnosis.
+The scorer reports dependency recall/precision, required-dependency recall, exact compatibility classification accuracy, false-ready, missed-warning, and false-block rates, blocking-dependency recall, and diagnosis completeness. `False ready` is strictly `NOT_READY -> READY`; `missed warning` is `WARNING -> READY`. V0.2 additionally reports package recall, package precision, required-package recall, package false ready, and package `N`. Diagnosis completeness is the share of NOT READY cases where every true blocker was reported; it prevents a correct overall classification from hiding an incomplete diagnosis.
 
 The V0.2 corpus contains Python and npm package labels. Maven support is covered by deterministic tests, while the pinned real-Skill corpus has Maven `N=0`; no Maven benchmark accuracy is inferred from that absence.

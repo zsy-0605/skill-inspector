@@ -23,7 +23,7 @@ def percent(numerator: int, denominator: int) -> str:
 
 def dependency_key(item: dict[str, Any]) -> tuple[str, str, str]:
     kind, name = item["type"], item["name"].lower()
-    ecosystem = item.get("ecosystem", "").lower()
+    ecosystem = item.get("ecosystem", "").lower() if kind == "package" else ""
     if kind == "runtime":
         name = {"python3": "python", "node.js": "node", "nodejs": "node"}.get(name, name)
     if kind == "operatingSystem":
@@ -87,9 +87,12 @@ def score(truth: dict[str, Any], prediction: dict[str, Any]) -> dict[str, Any]:
         if actual_readiness != "UNVERIFIABLE":
             counts["classificationCases"] += 1
             counts["classificationCorrect"] += int(predicted_readiness == actual_readiness)
-        if actual_readiness in {"WARNING", "NOT_READY"}:
-            counts["notReadyOrWarning"] += 1
+        if actual_readiness == "NOT_READY":
+            counts["notReady"] += 1
             counts["falseReady"] += int(predicted_readiness == "READY")
+        elif actual_readiness == "WARNING":
+            counts["warning"] += 1
+            counts["missedWarning"] += int(predicted_readiness == "READY")
         elif actual_readiness == "READY":
             counts["ready"] += 1
             counts["falseBlock"] += int(predicted_readiness == "NOT_READY")
@@ -129,7 +132,8 @@ def aggregate(scored: list[dict[str, Any]]) -> list[dict[str, Any]]:
                        "classificationAccuracy": percent(counts["classificationCorrect"], counts["classificationCases"]),
                        "diagnosisCompleteness": percent(counts["diagnosisComplete"], counts["diagnosisCases"]),
                        "blockingDependencyRecall": percent(counts["blockerTp"], counts["blockerTp"] + counts["blockerFn"]),
-                       "falseReady": percent(counts["falseReady"], counts["notReadyOrWarning"]),
+                       "falseReady": percent(counts["falseReady"], counts["notReady"]),
+                       "missedWarning": percent(counts["missedWarning"], counts["warning"]),
                        "falseBlock": percent(counts["falseBlock"], counts["ready"]),
                        "packageN": counts["packageTruth"] // len(runs),
                        "packageRecall": percent(counts["packageTp"], counts["packageTp"] + counts["packageFn"]),
@@ -146,18 +150,18 @@ def render(scores: list[dict[str, Any]], truth: dict[str, Any]) -> str:
     lines = ["# Controlled benchmark comparison", "", f"Dataset: `{truth.get('datasetVersion', 'UNKNOWN')}`",
              f"Environment: `{truth.get('environment', 'UNKNOWN')}`",
              f"Ground truth: **{provenance}**", f"Model trials: **{total_trials}**", "",
-             "| Method | Model | Runs | Skills/run | Coverage | Recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | Blocker recall | False ready | False block |",
-             "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
+             "| Method | Model | Runs | Skills/run | Coverage | Recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | Blocker recall | False ready | Missed warning | False block |",
+             "|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|"]
     for item in scores:
-        lines.append(f"| {item['method']} | {item['model']} | {item['runs']} | {item['reviewedPerRun']} | {item['coverage']} | {item['recall']} | {item['precision']} | {item['requiredRecall']} | {item['classificationAccuracy']} | {item['diagnosisCompleteness']} | {item['blockingDependencyRecall']} | {item['falseReady']} | {item['falseBlock']} |")
+        lines.append(f"| {item['method']} | {item['model']} | {item['runs']} | {item['reviewedPerRun']} | {item['coverage']} | {item['recall']} | {item['precision']} | {item['requiredRecall']} | {item['classificationAccuracy']} | {item['diagnosisCompleteness']} | {item['blockingDependencyRecall']} | {item['falseReady']} | {item['missedWarning']} | {item['falseBlock']} |")
     lines += ["", "## Package metrics", "",
               "| Method | Package N | Package recall | Package precision | Required package recall | Package false ready |",
               "|---|---:|---:|---:|---:|---:|"]
     for item in scores:
         lines.append(f"| {item['method']} | {item['packageN']} | {item['packageRecall']} | {item['packagePrecision']} | {item['requiredPackageRecall']} | {item['packageFalseReady']} |")
-    lines += ["", "Metrics are pooled across repeated runs. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.", "",
+    lines += ["", "Metrics are pooled across repeated runs. `False ready` means NOT READY predicted as READY; `Missed warning` means WARNING predicted as READY. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.", "",
               "## Interpretation", "",
-              "The hybrid method improved dependency coverage and sharply reduced false-ready decisions by turning Agent-extracted requirements into deterministic environment checks. It did not eliminate false blocks; semantic over-classification can still send an incorrect required dependency to Java.", "",
+              "The hybrid method improved dependency coverage and reduced missed-warning decisions by turning Agent-extracted requirements into deterministic environment checks. Strict false-ready and false-block rates remain environment- and label-distribution-dependent and are reported separately.", "",
               "## Limitations", "",
               "- Ground truth dependencies, evidence paths, necessity, and environment conclusions were human-reviewed.",
               "- The corpus contains 30 pinned Skills from six repositories, one model, and one controlled Linux environment.",

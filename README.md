@@ -157,21 +157,21 @@ python3 scripts/run-controlled-benchmark.py \
   --runs 3 --java /absolute/path/to/jdk-21/bin/java
 ```
 
-| 方法 | 依赖召回率 | 精确率 | 必需依赖召回率 | 分类准确率 | 诊断完整度 | False Ready |
-|---|---:|---:|---:|---:|---:|---:|
-| 仅 Agent | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 21.4% |
-| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **1.2%** |
+| 方法 | 依赖召回率 | 精确率 | 必需依赖召回率 | 分类准确率 | 诊断完整度 | False Ready | Missed Warning |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| 仅 Agent | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 0.0% | 33.3% |
+| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **0.0%** | **1.9%** |
 
 混合方法还将 False Block 从 50.0% 降低到 33.3%，但尚未完全消除。项目维护者已对 30 个 Skill 的依赖、证据、必要性和环境结论完成人工复核。以上结果仍然只是固定数据集、单一模型和单一 Linux 环境下的受控实验结果，不代表整个 Agent Skill 生态的普遍准确率。在 Skill Inspector 当前支持的机器可读依赖定义下，这 30 个 Skill 均未声明受支持格式的结构化运行时契约。
 
 V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环境上加入了 147 个 Python/npm 包依赖标签（Maven `N=0`）：
 
-| 方法 | 总体召回率 | 精确率 | 必需依赖召回率 | False Ready | Package Recall | Package Precision | Required Package Recall |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| 仅 Agent | 46.7% | 78.2% | 61.9% | 16.7% | 44.4% | 83.8% | 100.0% |
-| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **4.4%** | **75.7%** | **94.1%** | **100.0%** |
+| 方法 | 总体召回率 | 精确率 | 必需依赖召回率 | False Ready | Missed Warning | Package Recall | Package Precision | Required Package Recall |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| 仅 Agent | 47.5% | 79.6% | 66.7% | 0.0% | 29.4% | 44.4% | 83.8% | 100.0% |
+| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **0.0%** | **7.8%** | **75.7%** | **94.1%** | **100.0%** |
 
-两种 V0.2 条件的 Package False Ready 都是 0%；本轮 package 层面的主要提升是发现覆盖率，而不是该指标。由于 V0.2 增加了 package 标签和 4 个 package blocker，V0.1.1 与 V0.2 的分母并不完全相同。混合方法的 Required Recall、Blocker Recall 和 Diagnosis Completeness 仍为 100%，但总体 False Ready 从 V0.1.1 的 1.2% 上升到 4.4%，没有人为调整结果。
+严格 False Ready（`NOT_READY -> READY`）在 V0.1.1 和 V0.2 的两种条件中均为 0%。先前的 1.2% 和 4.4% 将 `WARNING -> READY` 也合并到 False Ready；修正后它们是 Missed Warning 1.9% 和 7.8%。V0.2 新增 147 个 package 标签、4 个 package blocker，且 3 个 Skill 的 readiness 标签发生变化，因此跨版本百分比不能直接作为 regression 对比。Package False Ready 仍为 0%，package 层面证明的主要收益是发现覆盖率。
 
 详细信息请参阅[基准测试协议](benchmark/README.md)、[固定数据集](benchmark/dataset.json)、[受控环境](benchmark/environment.json)、[V0.1.1 完整结果](benchmark/results/controlled-2026-08-21.md)和 [V0.2 完整结果](benchmark/results/controlled-v0.2.0-rc1.md)。
 
@@ -370,21 +370,21 @@ python3 scripts/run-controlled-benchmark.py \
   --runs 3 --java /absolute/path/to/jdk-21/bin/java
 ```
 
-| Method | Dependency recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | False ready |
-|---|---:|---:|---:|---:|---:|---:|
-| Agent only | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 21.4% |
-| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **1.2%** |
+| Method | Dependency recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | False ready | Missed warning |
+|---|---:|---:|---:|---:|---:|---:|---:|
+| Agent only | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 0.0% | 33.3% |
+| **Agent + Skill Inspector** | **74.0%** | **91.9%** | **100.0%** | **77.8%** | **100.0%** | **0.0%** | **1.9%** |
 
 The hybrid method also reduced false blocks from 50.0% to 33.3%, but did not eliminate them. The project maintainer manually reviewed the dependencies, evidence, necessity, and environment conclusions for all 30 Skills. These results remain a controlled experiment on a fixed dataset, one model, and one Linux environment; they are not an ecosystem-wide accuracy claim. Within this benchmark and Skill Inspector's machine-readable dependency definition, none of the 30 pinned Skills declared a structured runtime contract in the supported schema.
 
 V0.2 adds 147 Python/npm package labels to the same 30 pinned Skills, model, three-run protocol, and base Linux environment (Maven `N=0`):
 
-| Method | Overall recall | Precision | Required recall | False ready | Package recall | Package precision | Required package recall |
-|---|---:|---:|---:|---:|---:|---:|---:|
-| Agent only | 46.7% | 78.2% | 61.9% | 16.7% | 44.4% | 83.8% | 100.0% |
-| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **4.4%** | **75.7%** | **94.1%** | **100.0%** |
+| Method | Overall recall | Precision | Required recall | False ready | Missed warning | Package recall | Package precision | Required package recall |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|
+| Agent only | 47.5% | 79.6% | 66.7% | 0.0% | 29.4% | 44.4% | 83.8% | 100.0% |
+| **Agent + Skill Inspector** | **73.5%** | **91.3%** | **100.0%** | **0.0%** | **7.8%** | **75.7%** | **94.1%** | **100.0%** |
 
-Package false ready was 0% for both V0.2 conditions; the demonstrated package-level gain is discovery coverage, not that metric. Because V0.2 adds package labels and four package blockers, V0.1.1 and V0.2 do not have identical denominators. The hybrid method retained 100% required recall, blocker recall, and diagnosis completeness, while overall false ready increased from 1.2% in V0.1.1 to 4.4%; the result is reported without adjustment.
+Strict false ready (`NOT_READY -> READY`) was 0% for both conditions in V0.1.1 and V0.2. The former 1.2% and 4.4% values had also counted `WARNING -> READY`; after separating the definitions, they are missed-warning rates of 1.9% and 7.8%. V0.2 adds 147 package labels, four package blockers, and changes three Skills' readiness labels, so the cross-version percentages are not a direct regression comparison. Package false ready remains 0%; the demonstrated package-level gain is discovery coverage.
 
 See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), [V0.1.1 results](benchmark/results/controlled-2026-08-21.md), and [V0.2 results](benchmark/results/controlled-v0.2.0-rc1.md).
 

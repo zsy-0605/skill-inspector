@@ -123,12 +123,15 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
     labels = {item["id"]: item for item in annotations.get("skills", []) if item.get("reviewStatus") in REVIEWED_STATUSES}
     by_id = {item["id"]: item for item in results}
     true_positive = false_positive = false_negative = 0
-    false_ready = false_block = ready_actual = not_ready_actual = 0
+    false_ready = missed_warning = false_block = ready_actual = not_ready_actual = warning_actual = 0
+    dependency_key = lambda item: (item["type"],
+                                   item.get("ecosystem", "").lower() if item["type"] == "package" else "",
+                                   item["name"].lower())
     for skill_id, label in labels.items():
         if skill_id not in by_id:
             continue
-        actual = {(item["type"], item["name"].lower()) for item in label.get("dependencies", []) if item.get("inScope")}
-        predicted = {(item["type"], item["name"].lower()) for item in by_id[skill_id]["report"].get("checks", [])}
+        actual = {dependency_key(item) for item in label.get("dependencies", []) if item.get("inScope")}
+        predicted = {dependency_key(item) for item in by_id[skill_id]["report"].get("checks", [])}
         true_positive += len(actual & predicted)
         false_positive += len(predicted - actual)
         false_negative += len(actual - predicted)
@@ -137,9 +140,12 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
         if actual_readiness == "READY":
             ready_actual += 1
             false_block += int(predicted_readiness == "NOT_READY")
-        elif actual_readiness in {"NOT_READY", "WARNING"}:
+        elif actual_readiness == "NOT_READY":
             not_ready_actual += 1
             false_ready += int(predicted_readiness == "READY")
+        elif actual_readiness == "WARNING":
+            warning_actual += 1
+            missed_warning += int(predicted_readiness == "READY")
     if not labels:
         return {"status": "NOT_COMPUTED", "reason": "No REVIEWED ground-truth annotations", "reviewedSkills": 0}
     ratio = lambda numerator, denominator: round(100.0 * numerator / denominator, 1) if denominator else None
@@ -148,9 +154,10 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
         "dependencyRecallPercent": ratio(true_positive, true_positive + false_negative),
         "dependencyPrecisionPercent": ratio(true_positive, true_positive + false_positive),
         "falseReadyRatePercent": ratio(false_ready, not_ready_actual),
+        "missedWarningRatePercent": ratio(missed_warning, warning_actual),
         "falseBlockRatePercent": ratio(false_block, ready_actual),
         "counts": {"truePositive": true_positive, "falsePositive": false_positive, "falseNegative": false_negative,
-                   "falseReady": false_ready, "falseBlock": false_block}
+                   "falseReady": false_ready, "missedWarning": missed_warning, "falseBlock": false_block}
     }
 
 
@@ -176,6 +183,7 @@ def write_markdown(path: Path, payload: dict[str, Any]) -> None:
                   f"| Dependency recall | {metrics['dependencyRecallPercent']}% |",
                   f"| Dependency precision | {metrics['dependencyPrecisionPercent']}% |",
                   f"| False ready rate | {metrics['falseReadyRatePercent']}% |",
+                  f"| Missed warning rate | {metrics['missedWarningRatePercent']}% |",
                   f"| False block rate | {metrics['falseBlockRatePercent']}% |", ""]
     lines += ["## Per-Skill results", "", "| Skill | Repository | Readiness | Score | Checks |",
               "|---|---|---:|---:|---:|"]

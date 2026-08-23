@@ -5,16 +5,16 @@ Environment: `linux-system-path-2026-08-21`
 Ground truth: **human-reviewed**
 Model trials: **180**
 
-| Method | Model | Runs | Skills/run | Coverage | Recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | Blocker recall | False ready | False block |
-|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
-| AGENT_ONLY | gpt-5.6-sol | 3 | 30 | 100.0% | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 97.2% | 21.4% | 50.0% |
-| AGENT_WITH_INSPECTOR | gpt-5.6-sol | 3 | 30 | 100.0% | 74.0% | 91.9% | 100.0% | 77.8% | 100.0% | 100.0% | 1.2% | 33.3% |
+| Method | Model | Runs | Skills/run | Coverage | Recall | Precision | Required recall | Classification accuracy | Diagnosis completeness | Blocker recall | False ready | Missed warning | False block |
+|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|
+| AGENT_ONLY | gpt-5.6-sol | 3 | 30 | 100.0% | 60.9% | 89.2% | 93.1% | 66.7% | 96.7% | 97.2% | 0.0% | 33.3% | 50.0% |
+| AGENT_WITH_INSPECTOR | gpt-5.6-sol | 3 | 30 | 100.0% | 74.0% | 91.9% | 100.0% | 77.8% | 100.0% | 100.0% | 0.0% | 1.9% | 33.3% |
 
-Metrics are pooled across repeated runs. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.
+Metrics are pooled across repeated runs. `False ready` means NOT READY predicted as READY; `Missed warning` means WARNING predicted as READY. `Diagnosis completeness` is the share of NOT READY cases for which every true blocking dependency was reported.
 
 ## Interpretation
 
-The hybrid method improved dependency coverage and sharply reduced false-ready decisions by turning Agent-extracted requirements into deterministic environment checks. It did not eliminate false blocks; semantic over-classification can still send an incorrect required dependency to Java.
+The hybrid method improved dependency coverage and reduced missed-warning decisions by turning Agent-extracted requirements into deterministic environment checks. Strict false ready was 0% for both conditions; the hybrid method did not eliminate false blocks.
 
 ## Limitations
 

@@ -73,7 +73,7 @@ def prediction_requirement(item: dict[str, Any], source: str | None = None) -> d
     result = {"type": item["type"], "name": item["name"], "inScope": True,
               "evidence": item.get("evidence") or "No evidence returned",
               "necessity": item.get("necessity", "CONDITIONAL")}
-    if item.get("ecosystem"):
+    if item.get("type") == "package" and item.get("ecosystem"):
         result["ecosystem"] = item["ecosystem"]
     if item.get("version") or item.get("required"):
         result["required"] = item.get("version") or item.get("required")

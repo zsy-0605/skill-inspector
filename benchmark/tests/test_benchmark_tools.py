@@ -46,6 +46,35 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual(1, summary["skillsWithNoChecks"])
         self.assertEqual("NOT_COMPUTED", metrics["status"])
 
+    def test_static_layer_scoring_separates_false_ready_and_missed_warning(self):
+        results = [{"id": "blocked", "report": {"readiness": "READY", "checks": []}},
+                   {"id": "warning", "report": {"readiness": "READY", "checks": []}}]
+        truth = {"skills": [{"id": "blocked", "reviewStatus": "HUMAN_REVIEWED",
+                             "actualReadiness": "NOT_READY", "dependencies": []},
+                            {"id": "warning", "reviewStatus": "HUMAN_REVIEWED",
+                             "actualReadiness": "WARNING", "dependencies": []}]}
+
+        metrics = runner.calculate_metrics(results, truth)
+
+        self.assertEqual(100.0, metrics["falseReadyRatePercent"])
+        self.assertEqual(100.0, metrics["missedWarningRatePercent"])
+        self.assertEqual(1, metrics["counts"]["falseReady"])
+        self.assertEqual(1, metrics["counts"]["missedWarning"])
+
+    def test_static_layer_scoring_distinguishes_package_ecosystems(self):
+        results = [{"id": "package", "report": {"readiness": "READY", "checks": [
+            {"type": "package", "ecosystem": "npm", "name": "shared-name"}
+        ]}}]
+        truth = {"skills": [{"id": "package", "reviewStatus": "HUMAN_REVIEWED",
+                             "actualReadiness": "READY", "blockingDependencies": [],
+                             "dependencies": [{"type": "package", "ecosystem": "python",
+                                               "name": "shared-name", "inScope": True}]}]}
+
+        metrics = runner.calculate_metrics(results, truth)
+
+        self.assertEqual(0.0, metrics["dependencyRecallPercent"])
+        self.assertEqual(0.0, metrics["dependencyPrecisionPercent"])
+
     def test_scoring_counts_dependency_and_readiness_errors(self):
         truth = {"datasetVersion": "v1", "skills": [{
             "id": "sample", "reviewStatus": "EVIDENCE_REVIEWED", "actualReadiness": "NOT_READY",
@@ -96,6 +125,45 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual("0.0%", result["requiredPackageRecall"])
         self.assertEqual("100.0%", result["packageFalseReady"])
 
+    def test_scoring_keeps_false_ready_and_missed_warning_separate(self):
+        truth = {"datasetVersion": "v2", "skills": [{
+            "id": "warning", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "WARNING",
+            "blockingDependencies": [], "dependencies": []
+        }, {
+            "id": "blocked", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "NOT_READY",
+            "blockingDependencies": [{"type": "command", "name": "missing"}],
+            "dependencies": [{"type": "command", "name": "missing", "necessity": "REQUIRED",
+                              "inScope": True, "evidence": "SKILL.md:1"}]
+        }]}
+        prediction = {"datasetVersion": "v2", "method": "AGENT_ONLY", "model": "test", "run": 1,
+                      "skills": [{"id": "warning", "readiness": "READY", "dependencies": []},
+                                 {"id": "blocked", "readiness": "READY", "dependencies": []}]}
+
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
+
+        self.assertEqual("100.0%", result["falseReady"])
+        self.assertEqual("100.0%", result["missedWarning"])
+        self.assertEqual(1, result["counts"]["falseReady"])
+        self.assertEqual(1, result["counts"]["missedWarning"])
+
+    def test_scoring_ignores_ecosystem_on_non_package_requirements(self):
+        truth = {"datasetVersion": "v2", "skills": [{
+            "id": "runtime", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "READY",
+            "blockingDependencies": [],
+            "dependencies": [{"type": "runtime", "name": "python", "necessity": "REQUIRED",
+                              "inScope": True, "evidence": "SKILL.md:1"}]
+        }]}
+        prediction = {"datasetVersion": "v2", "method": "AGENT_ONLY", "model": "test", "run": 1,
+                      "skills": [{"id": "runtime", "readiness": "READY", "dependencies": [{
+                          "type": "runtime", "ecosystem": "python", "name": "python",
+                          "inScope": True, "evidence": "SKILL.md:1"
+                      }]}]}
+
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
+
+        self.assertEqual("100.0%", result["recall"])
+        self.assertEqual("100.0%", result["requiredRecall"])
+
     def test_controlled_environment_does_not_forward_dependency_secrets(self):
         old = __import__("os").environ.get("OPENAI_API_KEY")
         __import__("os").environ["OPENAI_API_KEY"] = "must-not-be-forwarded"
@@ -134,6 +202,15 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertNotIn("matched", handoff["requirements"][0])
         self.assertEqual("python", handoff["requirements"][1]["ecosystem"])
         self.assertIn("ecosystem", payload["requirements"][0])
+
+    def test_prediction_requirement_removes_ecosystem_from_non_packages(self):
+        runtime = controlled.prediction_requirement(
+            {"type": "runtime", "ecosystem": "python", "name": "python"})
+        package = controlled.prediction_requirement(
+            {"type": "package", "ecosystem": "python", "name": "pypdf"})
+
+        self.assertNotIn("ecosystem", runtime)
+        self.assertEqual("python", package["ecosystem"])
 
 
 if __name__ == "__main__":
