@@ -124,9 +124,11 @@ def calculate_metrics(results: list[dict[str, Any]], annotations: dict[str, Any]
     by_id = {item["id"]: item for item in results}
     true_positive = false_positive = false_negative = 0
     false_ready = missed_warning = false_block = ready_actual = not_ready_actual = warning_actual = 0
-    dependency_key = lambda item: (item["type"],
-                                   item.get("ecosystem", "").lower() if item["type"] == "package" else "",
-                                   item["name"].lower())
+    dependency_key = lambda item: (
+        item["type"],
+        item.get("ecosystem", "").lower() if item["type"] == "package"
+        else item.get("capabilityKind", "") if item["type"] == "capability" else "",
+        item["name"] if item["type"] == "capability" else item["name"].lower())
     for skill_id, label in labels.items():
         if skill_id not in by_id:
             continue

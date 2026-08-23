@@ -75,12 +75,18 @@ def prediction_requirement(item: dict[str, Any], source: str | None = None) -> d
               "necessity": item.get("necessity", "CONDITIONAL")}
     if item.get("type") == "package" and item.get("ecosystem"):
         result["ecosystem"] = item["ecosystem"]
+    if item.get("type") == "capability" and item.get("capabilityKind"):
+        result["capabilityKind"] = item["capabilityKind"]
     if item.get("version") or item.get("required"):
         result["required"] = item.get("version") or item.get("required")
     if source or item.get("source"):
         result["source"] = source or item["source"]
     if item.get("confidence"):
         result["confidence"] = item["confidence"]
+    if item.get("status"):
+        result["status"] = item["status"]
+    if item.get("actual"):
+        result["actual"] = item["actual"]
     return result
 
 
@@ -91,6 +97,10 @@ def semantic_handoff(payload: dict[str, Any]) -> dict[str, Any]:
             requirement.pop(field)
         if requirement.get("type") != "package":
             requirement.pop("ecosystem", None)
+        if requirement.get("type") != "capability":
+            requirement.pop("capabilityKind", None)
+    if any(item.get("type") == "capability" for item in handoff.get("requirements", [])):
+        handoff["schemaVersion"] = "1.1"
     return handoff
 
 

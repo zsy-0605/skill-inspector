@@ -1,0 +1,50 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "title": "Skill Inspector runtime capability snapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "runtime", "coverage", "capabilities"],
+  "properties": {
+    "schemaVersion": {"type": "string", "const": "1.0"},
+    "runtime": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["name"],
+      "properties": {
+        "name": {"type": "string", "minLength": 1, "maxLength": 500},
+        "version": {"type": "string", "maxLength": 500}
+      }
+    },
+    "coverage": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["mcpServer", "tool", "capability"],
+      "properties": {
+        "mcpServer": {"enum": ["COMPLETE", "PARTIAL"]},
+        "tool": {"enum": ["COMPLETE", "PARTIAL"]},
+        "capability": {"enum": ["COMPLETE", "PARTIAL"]}
+      }
+    },
+    "capabilities": {
+      "type": "array",
+      "maxItems": 1000,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["capabilityKind", "name", "availability", "source"],
+        "properties": {
+          "capabilityKind": {"enum": ["mcpServer", "tool", "capability"]},
+          "name": {"type": "string", "minLength": 1, "maxLength": 500},
+          "aliases": {
+            "type": "array",
+            "maxItems": 100,
+            "items": {"type": "string", "minLength": 1, "maxLength": 500},
+            "uniqueItems": true
+          },
+          "availability": {"enum": ["AVAILABLE", "CONFIGURED", "UNAVAILABLE", "UNKNOWN"]},
+          "source": {"enum": ["RUNTIME_INVENTORY", "STATIC_CONFIGURATION", "USER_PROVIDED"]}
+        }
+      }
+    }
+  }
+}

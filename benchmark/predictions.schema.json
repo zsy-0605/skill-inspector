@@ -24,14 +24,20 @@
               "type": "object",
               "required": ["type", "name", "inScope", "evidence"],
               "properties": {
-                "type": {"type": "string"}, "ecosystem": {"enum": ["python", "npm", "maven"]}, "name": {"type": "string"},
+                "type": {"type": "string"}, "ecosystem": {"enum": ["python", "npm", "maven"]},
+                "capabilityKind": {"enum": ["mcpServer", "tool", "capability"]}, "name": {"type": "string"},
                 "required": {"type": "string"},
                 "inScope": {"type": "boolean"}, "evidence": {"type": "string"},
                 "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
                 "source": {"enum": ["DECLARED", "INFERRED", "JAVA_REPORT"]},
-                "confidence": {"enum": ["CERTAIN", "HIGH", "MEDIUM", "LOW"]}
+                "confidence": {"enum": ["CERTAIN", "HIGH", "MEDIUM", "LOW"]},
+                "status": {"enum": ["PASS", "FAIL", "WARNING", "UNKNOWN"]},
+                "actual": {"type": "string"}
               },
-              "allOf": [{"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem"]}}]
+              "allOf": [
+                {"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem"]}},
+                {"if": {"properties": {"type": {"const": "capability"}}}, "then": {"required": ["capabilityKind"]}}
+              ]
             }
           }
         }

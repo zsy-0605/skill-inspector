@@ -62,3 +62,50 @@ Inferred package handoff with structured evidence:
 ```
 
 Java checks the corresponding local package metadata. It does not import the package, execute a lifecycle script, call a package manager, or query a registry. An unsupported constraint is `UNKNOWN`, never an assumed pass.
+
+Capability handoff 1.1 with a platform-neutral Snapshot:
+
+```json
+{
+  "schemaVersion": "1.1",
+  "requirements": [{
+    "type": "capability",
+    "capabilityKind": "tool",
+    "name": "search_docs",
+    "required": "available",
+    "necessity": "REQUIRED",
+    "source": "INFERRED",
+    "confidence": "HIGH",
+    "evidence": {
+      "file": "SKILL.md:38",
+      "matched": "Always use the search_docs tool.",
+      "inferenceRule": "SEMANTIC_TOOL_REFERENCE"
+    }
+  }]
+}
+```
+
+```json
+{
+  "schemaVersion": "1.0",
+  "runtime": {"name": "generic-agent-runtime"},
+  "coverage": {"mcpServer": "COMPLETE", "tool": "COMPLETE", "capability": "PARTIAL"},
+  "capabilities": [{
+    "capabilityKind": "tool",
+    "name": "mcp__docs__search",
+    "aliases": ["search_docs"],
+    "availability": "AVAILABLE",
+    "source": "RUNTIME_INVENTORY"
+  }]
+}
+```
+
+Run:
+
+```bash
+java -jar target/skill-inspector.jar verify ./examples/capability-skill \
+  --requirements ./examples/capability-skill/requirements.json \
+  --capabilities ./examples/capability-skill/runtime-capabilities.json --json
+```
+
+The result reports `resolvedCapability: "mcp__docs__search"` for the explicit alias. `AVAILABLE` means only that the current runtime inventory advertises the tool; it does not prove permissions, authentication, parameter compatibility, network health, or successful execution.

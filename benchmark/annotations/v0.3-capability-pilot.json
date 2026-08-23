@@ -1,0 +1,40 @@
+{
+  "schemaVersion": "1.0",
+  "datasetVersion": "v0.3-capability-pilot-2026-08-23",
+  "scope": "Static evidence labels for the first V0.3 capability samples; not a controlled benchmark result.",
+  "samples": [
+    {
+      "skillId": "openai-openai-docs",
+      "classification": "POSITIVE_WITH_FALLBACK",
+      "requirements": [
+        {"capabilityKind": "mcpServer", "name": "openaiDeveloperDocs", "necessity": "CONDITIONAL", "evidence": "SKILL.md:9"},
+        {"capabilityKind": "tool", "name": "mcp__openaiDeveloperDocs__search_openai_docs", "necessity": "CONDITIONAL", "evidence": "SKILL.md:9"},
+        {"capabilityKind": "tool", "name": "mcp__openaiDeveloperDocs__fetch_openai_doc", "necessity": "CONDITIONAL", "evidence": "SKILL.md:9"},
+        {"capabilityKind": "tool", "name": "mcp__openaiDeveloperDocs__get_openapi_spec", "necessity": "CONDITIONAL", "evidence": "SKILL.md:9"}
+      ],
+      "reason": "The Skill names a server and concrete tools, while official-domain search is an explicit fallback."
+    },
+    {
+      "skillId": "plugin-hf-jobs",
+      "classification": "POSITIVE_REQUIRED",
+      "requirements": [
+        {"capabilityKind": "tool", "name": "hf_jobs", "necessity": "REQUIRED", "evidence": "SKILL.md:38"}
+      ],
+      "reason": "The workflow explicitly says to always use the named MCP tool."
+    },
+    {
+      "skillId": "plugin-hf-llm-trainer",
+      "classification": "POSITIVE_WITH_FALLBACK",
+      "requirements": [
+        {"capabilityKind": "tool", "name": "hf_jobs", "necessity": "CONDITIONAL", "evidence": "SKILL.md:52"}
+      ],
+      "reason": "The Skill prefers the tool and explicitly supplies an hf jobs CLI fallback at SKILL.md:286."
+    },
+    {"skillId": "anthropic-mcp-builder", "classification": "NEGATIVE", "requirements": [],
+     "reason": "Instructions for building an MCP server do not require an existing server capability."},
+    {"skillId": "plugin-shopify-dev", "classification": "NEGATIVE", "requirements": [],
+     "reason": "A telemetry URL containing /mcp/usage is not an MCP runtime dependency."},
+    {"skillId": "anthropic-web-artifacts", "classification": "NEGATIVE", "requirements": [],
+     "reason": "Generic available-tools prose does not identify a required concrete tool or capability ID."}
+  ]
+}

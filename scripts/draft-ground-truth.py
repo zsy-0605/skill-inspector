@@ -86,6 +86,10 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
                 raise ValueError(f"Package requirement needs a supported ecosystem: {skill_id}/{name}")
             item["version"] = item.get("version") or item.get("required") or "*"
             item["required"] = item["version"]
+        elif kind == "capability":
+            if item.get("capabilityKind") not in {"mcpServer", "tool", "capability"}:
+                raise ValueError(f"Capability requirement needs a supported capabilityKind: {skill_id}/{name}")
+            item["required"] = "available"
         elif kind == "operatingSystem":
             name = lowered
             if name not in SUPPORTED_OPERATING_SYSTEMS:
@@ -104,8 +108,11 @@ def normalize_requirements(skill_id: str, payload: dict[str, Any], target: Path)
         if kind != "package":
             item.pop("ecosystem", None)
             item.pop("version", None)
+        if kind != "capability":
+            item.pop("capabilityKind", None)
         item["necessity"] = NECESSITY_OVERRIDES.get((skill_id, kind, name), item["necessity"])
-        key = (kind, str(item.get("ecosystem", "")), name.lower())
+        qualifier = str(item.get("ecosystem", "") if kind == "package" else item.get("capabilityKind", ""))
+        key = (kind, qualifier, name if kind == "capability" else name.lower())
         previous = normalized.get(key)
         if previous is None or necessity_rank[item["necessity"]] > necessity_rank[previous["necessity"]]:
             normalized[key] = item
@@ -173,7 +180,7 @@ def main() -> int:
     payload = {
         "schemaVersion": "1.1", "datasetVersion": dataset["datasetVersion"],
         "environment": "Readiness is assigned separately under benchmark/environment.json.",
-        "scope": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"],
+        "scope": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability"],
         "reviewPolicy": "static review; dependencies require evidence and keep necessity separate from source. EVIDENCE_REVIEWED requires deterministic evidence and environment validation. Human signoff is never implied.",
         "skills": skills,
     }

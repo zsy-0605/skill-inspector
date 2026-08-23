@@ -1,0 +1,28 @@
+{
+  "schemaVersion": "1.0",
+  "runtime": {
+    "name": "generic-agent-runtime",
+    "version": "example"
+  },
+  "coverage": {
+    "mcpServer": "COMPLETE",
+    "tool": "COMPLETE",
+    "capability": "PARTIAL"
+  },
+  "capabilities": [
+    {
+      "capabilityKind": "mcpServer",
+      "name": "docsServer",
+      "aliases": [],
+      "availability": "AVAILABLE",
+      "source": "RUNTIME_INVENTORY"
+    },
+    {
+      "capabilityKind": "tool",
+      "name": "mcp__docs__search",
+      "aliases": ["search_docs"],
+      "availability": "AVAILABLE",
+      "source": "RUNTIME_INVENTORY"
+    }
+  ]
+}

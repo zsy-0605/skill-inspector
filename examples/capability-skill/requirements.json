@@ -1,0 +1,19 @@
+{
+  "schemaVersion": "1.1",
+  "requirements": [
+    {
+      "type": "capability",
+      "capabilityKind": "tool",
+      "name": "search_docs",
+      "required": "available",
+      "necessity": "CONDITIONAL",
+      "source": "INFERRED",
+      "confidence": "HIGH",
+      "evidence": {
+        "file": "SKILL.md:17",
+        "matched": "the `search_docs` tool reference",
+        "inferenceRule": "SEMANTIC_TOOL_REFERENCE"
+      }
+    }
+  ]
+}

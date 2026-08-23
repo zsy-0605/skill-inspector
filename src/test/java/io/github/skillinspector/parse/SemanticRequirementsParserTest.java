@@ -84,4 +84,35 @@ class SemanticRequirementsParserTest {
         assertThatThrownBy(() -> new SemanticRequirementsParser().parse(input))
                 .isInstanceOf(SkillParseException.class).hasMessageContaining("JSON object");
     }
+
+    @Test void parsesCapabilityFromHandoff11WithExplainableEvidence() throws Exception {
+        Path input = temp.resolve("capabilities.json");
+        Files.writeString(input, """
+                {"schemaVersion":"1.1","requirements":[{
+                  "type":"capability","capabilityKind":"tool","name":"hf_jobs","required":"available",
+                  "necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH",
+                  "evidence":{"file":"SKILL.md:38","matched":"ALWAYS use hf_jobs() MCP tool",
+                              "inferenceRule":"SEMANTIC_TOOL_REFERENCE"}
+                }]}
+                """);
+
+        CapabilityRequirement requirement = (CapabilityRequirement) new SemanticRequirementsParser().parse(input).getFirst();
+
+        assertThat(requirement.capabilityKind()).isEqualTo(CapabilityKind.TOOL);
+        assertThat(requirement.required()).isEqualTo("available");
+        assertThat(requirement.inferenceRule()).isEqualTo("SEMANTIC_TOOL_REFERENCE");
+    }
+
+    @Test void rejectsCapabilitiesInHandoff10() throws Exception {
+        Path input = temp.resolve("old-capabilities.json");
+        Files.writeString(input, """
+                {"schemaVersion":"1.0","requirements":[{
+                  "type":"capability","capabilityKind":"tool","name":"hf_jobs",
+                  "necessity":"REQUIRED","source":"INFERRED","confidence":"HIGH","evidence":"SKILL.md:38"
+                }]}
+                """);
+
+        assertThatThrownBy(() -> new SemanticRequirementsParser().parse(input))
+                .isInstanceOf(SkillParseException.class).hasMessageContaining("schemaVersion 1.1");
+    }
 }

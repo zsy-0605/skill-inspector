@@ -20,6 +20,8 @@ def load_script(name: str):
 runner = load_script("run-real-benchmark.py")
 scorer = load_script("score-benchmark.py")
 controlled = load_script("run-controlled-benchmark.py")
+draft = load_script("draft-ground-truth.py")
+finalizer = load_script("finalize-ground-truth.py")
 
 
 class BenchmarkRunnerTest(unittest.TestCase):
@@ -30,6 +32,29 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual(30, len(skills))
         self.assertEqual(30, len(set(skills)))
         self.assertTrue(all(len(repo["commit"]) == 40 for repo in dataset["repositories"]))
+
+    def test_v03_capability_pilot_has_fixed_positive_and_negative_samples(self):
+        pilot = json.loads((PROJECT / "benchmark/annotations/v0.3-capability-pilot.json").read_text(encoding="utf-8"))
+        dataset = json.loads((PROJECT / "benchmark/dataset.json").read_text(encoding="utf-8"))
+        dataset_ids = {skill["id"] for repo in dataset["repositories"] for skill in repo["skills"]}
+        sample_ids = [sample["skillId"] for sample in pilot["samples"]]
+        self.assertEqual(6, len(sample_ids))
+        self.assertEqual(6, len(set(sample_ids)))
+        self.assertTrue(set(sample_ids) <= dataset_ids)
+        self.assertEqual(3, sum(sample["classification"] == "NEGATIVE" for sample in pilot["samples"]))
+        self.assertGreaterEqual(sum(len(sample["requirements"]) for sample in pilot["samples"]), 6)
+
+    def test_capability_ground_truth_preserves_exact_name_and_kind(self):
+        payload = {"requirements": [{"type": "capability", "ecosystem": None, "capabilityKind": "tool",
+                                      "name": "ExactTool", "version": "available", "necessity": "REQUIRED",
+                                      "source": "SKILL_TEXT", "inScope": True, "evidence": "SKILL.md:1", "notes": ""}]}
+        normalized = draft.normalize_requirements("sample", payload, PROJECT)
+        handoff = finalizer.handoff(normalized)
+
+        self.assertEqual("ExactTool", normalized[0]["name"])
+        self.assertEqual("tool", normalized[0]["capabilityKind"])
+        self.assertEqual("1.1", handoff["schemaVersion"])
+        self.assertEqual("available", handoff["requirements"][0]["required"])
 
     def test_dataset_rejects_traversal_and_non_github_urls(self):
         invalid = {"schemaVersion": "1.0", "repositories": [{
@@ -164,6 +189,31 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertEqual("100.0%", result["recall"])
         self.assertEqual("100.0%", result["requiredRecall"])
 
+    def test_capability_scoring_is_kind_qualified_and_case_sensitive(self):
+        truth = {"datasetVersion": "v3", "skills": [{
+            "id": "cap", "reviewStatus": "HUMAN_REVIEWED", "actualReadiness": "NOT_READY",
+            "blockingDependencies": [{"type": "capability", "capabilityKind": "tool", "name": "ExactTool"}],
+            "dependencies": [{"type": "capability", "capabilityKind": "tool", "name": "ExactTool",
+                              "necessity": "REQUIRED", "inScope": True, "evidence": "SKILL.md:1"}]
+        }]}
+        prediction = {"datasetVersion": "v3", "method": "AGENT_WITH_INSPECTOR", "model": "test", "run": 1,
+                      "skills": [{"id": "cap", "readiness": "NOT_READY", "dependencies": [
+                          {"type": "capability", "capabilityKind": "tool", "name": "ExactTool", "status": "FAIL",
+                           "actual": "NOT LISTED (COMPLETE)", "inScope": True, "evidence": "SKILL.md:1"},
+                          {"type": "capability", "capabilityKind": "mcpServer", "name": "ExactTool",
+                           "inScope": True, "evidence": "SKILL.md:1"},
+                          {"type": "capability", "capabilityKind": "tool", "name": "exacttool",
+                           "inScope": True, "evidence": "SKILL.md:1"}
+                      ]}]}
+
+        result = scorer.aggregate([scorer.score(truth, prediction)])[0]
+
+        self.assertEqual("100.0%", result["capabilityRecall"])
+        self.assertEqual("33.3%", result["capabilityPrecision"])
+        self.assertEqual("100.0%", result["requiredCapabilityRecall"])
+        self.assertEqual("0.0%", result["capabilityFalseReady"])
+        self.assertEqual("100.0%", result["snapshotCoverage"])
+
     def test_controlled_environment_does_not_forward_dependency_secrets(self):
         old = __import__("os").environ.get("OPENAI_API_KEY")
         __import__("os").environ["OPENAI_API_KEY"] = "must-not-be-forwarded"
@@ -202,6 +252,18 @@ class BenchmarkRunnerTest(unittest.TestCase):
         self.assertNotIn("matched", handoff["requirements"][0])
         self.assertEqual("python", handoff["requirements"][1]["ecosystem"])
         self.assertIn("ecosystem", payload["requirements"][0])
+
+    def test_semantic_handoff_upgrades_capabilities_to_11(self):
+        payload = {"schemaVersion": "1.0", "requirements": [
+            {"type": "capability", "capabilityKind": "tool", "ecosystem": None,
+             "name": "ExactTool", "required": "available"}
+        ]}
+
+        handoff = controlled.semantic_handoff(payload)
+
+        self.assertEqual("1.1", handoff["schemaVersion"])
+        self.assertEqual("tool", handoff["requirements"][0]["capabilityKind"])
+        self.assertNotIn("ecosystem", handoff["requirements"][0])
 
     def test_prediction_requirement_removes_ecosystem_from_non_packages(self):
         runtime = controlled.prediction_requirement(

@@ -21,7 +21,7 @@ public final class InspectionService {
         this.parser = parser;
         this.environment = environment;
         this.checkers = List.of(new RuntimeChecker(), new CommandChecker(), new EnvironmentVariableChecker(),
-                new FileChecker(), new OperatingSystemChecker(), new PackageChecker());
+                new FileChecker(), new OperatingSystemChecker(), new PackageChecker(), new CapabilityChecker());
     }
 
     public InspectionReport inspect(Path target) {
@@ -43,7 +43,7 @@ public final class InspectionService {
         }
         OverallStatus overall = overall(results);
         List<String> issues = results.stream().filter(r -> r.status() != CheckStatus.PASS).map(CheckResult::message).toList();
-        return new InspectionReport("1.0", skill.name(), skill.root().toString(), overall, score(results), readiness(overall), List.copyOf(results), issues);
+        return new InspectionReport("1.1", skill.name(), skill.root().toString(), overall, score(results), readiness(overall), List.copyOf(results), issues);
     }
 
     private List<Requirement> merge(List<Requirement> discovered, List<Requirement> semantic) {
@@ -61,8 +61,10 @@ public final class InspectionService {
     }
 
     private String key(Requirement item) {
-        String ecosystem = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue() : "";
-        return item.type() + "\u0000" + ecosystem + "\u0000" + item.name().toLowerCase(Locale.ROOT);
+        String qualifier = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue()
+                : item instanceof CapabilityRequirement capability ? capability.capabilityKind().jsonValue() : "";
+        String name = item instanceof CapabilityRequirement ? item.name() : item.name().toLowerCase(Locale.ROOT);
+        return item.type() + "\u0000" + qualifier + "\u0000" + name;
     }
 
     private int rank(RequirementNecessity necessity) {

@@ -68,11 +68,34 @@ public final class SkillParser {
         parseList(compatibility.get("files"), RequirementType.FILE, out);
         parseList(compatibility.get("directories"), RequirementType.DIRECTORY, out);
         parsePackages(compatibility.get("packages"), out);
+        parseCapabilities(compatibility.get("capabilities"), out);
         Object os = compatibility.get("os");
         if (os == null) os = compatibility.get("supportedOs");
         if (os instanceof Collection<?> values) {
             String joined = values.stream().map(this::stringValue).map(String::toLowerCase).reduce((a, b) -> a + "," + b).orElse("");
             out.add(SkillRequirement.declared(RequirementType.OPERATING_SYSTEM, "operating-system", joined, false));
+        }
+    }
+
+    private void parseCapabilities(Object raw, List<Requirement> out) {
+        if (!(raw instanceof Collection<?> values)) return;
+        for (Object value : values) {
+            if (!(value instanceof Map<?, ?> map) || map.get("capabilityKind") == null || map.get("name") == null)
+                throw new SkillParseException("capability entries require capabilityKind and name");
+            RequirementNecessity necessity;
+            if (map.containsKey("necessity")) {
+                try { necessity = RequirementNecessity.valueOf(stringValue(map.get("necessity")).toUpperCase(Locale.ROOT)); }
+                catch (IllegalArgumentException error) { throw new SkillParseException("Invalid capability necessity: " + map.get("necessity")); }
+            } else necessity = Boolean.parseBoolean(stringValue(map.containsKey("optional") ? map.get("optional") : false))
+                    ? RequirementNecessity.OPTIONAL : RequirementNecessity.REQUIRED;
+            String name = stringValue(map.get("name"));
+            if (name.isBlank()) throw new SkillParseException("capability name must not be blank");
+            CapabilityKind kind;
+            try { kind = CapabilityKind.fromJson(stringValue(map.get("capabilityKind"))); }
+            catch (IllegalArgumentException error) {
+                throw new SkillParseException("Invalid capabilityKind: " + map.get("capabilityKind"));
+            }
+            out.add(CapabilityRequirement.declared(kind, name, necessity, "SKILL.md frontmatter"));
         }
     }
 
@@ -185,8 +208,10 @@ public final class SkillParser {
     private List<Requirement> deduplicate(List<Requirement> input) {
         Map<String, Requirement> unique = new LinkedHashMap<>();
         for (Requirement item : input) {
-            String ecosystem = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue() : "";
-            String key = item.type() + "\u0000" + ecosystem + "\u0000" + item.name().toLowerCase();
+            String qualifier = item instanceof PackageRequirement packages ? packages.ecosystem().jsonValue()
+                    : item instanceof CapabilityRequirement capability ? capability.capabilityKind().jsonValue() : "";
+            String name = item instanceof CapabilityRequirement ? item.name() : item.name().toLowerCase();
+            String key = item.type() + "\u0000" + qualifier + "\u0000" + name;
             Requirement old = unique.get(key);
             if (old == null || old.source() == RequirementSource.INFERRED && item.source() == RequirementSource.DECLARED) unique.put(key, item);
         }

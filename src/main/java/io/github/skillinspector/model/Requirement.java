@@ -1,6 +1,6 @@
 package io.github.skillinspector.model;
 
-public sealed interface Requirement permits SkillRequirement, PackageRequirement {
+public sealed interface Requirement permits SkillRequirement, PackageRequirement, CapabilityRequirement {
     RequirementType type();
     String name();
     String required();

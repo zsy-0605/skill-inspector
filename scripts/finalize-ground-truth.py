@@ -32,13 +32,15 @@ def handoff(dependencies: list[dict[str, Any]]) -> dict[str, Any]:
             continue
         required = item.get("required")
         if not required:
-            required = "*" if item["type"] in {"runtime", "package"} else "present"
+            required = "available" if item["type"] == "capability" else "*" if item["type"] in {"runtime", "package"} else "present"
         requirement = {"type": item["type"], "name": item["name"], "required": required,
                              "necessity": item["necessity"], "source": "INFERRED", "confidence": "HIGH",
                              "evidence": item["evidence"], "inferenceRule": "reviewed-ground-truth"}
         if item["type"] == "package": requirement["ecosystem"] = item["ecosystem"]
+        if item["type"] == "capability": requirement["capabilityKind"] = item["capabilityKind"]
         requirements.append(requirement)
-    return {"schemaVersion": "1.0", "requirements": requirements}
+    schema_version = "1.1" if any(item["type"] == "capability" for item in requirements) else "1.0"
+    return {"schemaVersion": schema_version, "requirements": requirements}
 
 
 def main() -> int:
@@ -83,7 +85,7 @@ def main() -> int:
                 raise RuntimeError(f"Inspector failed for {label['id']}: {result.stderr.strip() or result.stdout.strip()}")
             report = json.loads(result.stdout)
             label["actualReadiness"] = report["readiness"].replace(" ", "_")
-            label["blockingDependencies"] = [{key: check[key] for key in ("type", "ecosystem", "name") if key in check}
+            label["blockingDependencies"] = [{key: check[key] for key in ("type", "ecosystem", "capabilityKind", "name") if key in check}
                                                for check in report.get("checks", []) if check["status"] == "FAIL"]
             if args.promote_evidence_reviewed:
                 label["reviewStatus"] = "EVIDENCE_REVIEWED"

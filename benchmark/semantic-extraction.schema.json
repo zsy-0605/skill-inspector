@@ -4,16 +4,17 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "requirements"],
   "properties": {
-    "schemaVersion": {"type": "string", "const": "1.0"},
+    "schemaVersion": {"type": "string", "const": "1.1"},
     "requirements": {
       "type": "array",
       "items": {
         "type": "object",
         "additionalProperties": false,
-        "required": ["type", "ecosystem", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
+        "required": ["type", "ecosystem", "capabilityKind", "name", "required", "necessity", "source", "confidence", "evidence", "matched", "inferenceRule"],
         "properties": {
-          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "type": {"type": "string", "enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability"]},
           "ecosystem": {"type": ["string", "null"], "enum": ["python", "npm", "maven", null]},
+          "capabilityKind": {"type": ["string", "null"], "enum": ["mcpServer", "tool", "capability", null]},
           "name": {"type": "string"},
           "required": {"type": ["string", "null"]},
           "necessity": {"type": "string", "enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
@@ -22,7 +23,9 @@
           "evidence": {"type": "string"},
           "matched": {"type": ["string", "null"]},
           "inferenceRule": {"type": "string"}
-        }
+        },
+        "allOf": [{"if": {"properties": {"type": {"const": "capability"}}},
+                   "then": {"properties": {"capabilityKind": {"type": "string"}, "required": {"const": "available"}}}}]
       }
     }
   }

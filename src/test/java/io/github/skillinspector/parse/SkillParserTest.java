@@ -62,4 +62,30 @@ class SkillParserTest {
 
         assertThat(parsed.requirements()).isEmpty();
     }
+
+    @Test void parsesDeclaredCapabilitiesFromFrontmatter() throws Exception {
+        Files.writeString(temp.resolve("SKILL.md"), """
+                ---
+                name: capability-skill
+                compatibility:
+                  capabilities:
+                    - capabilityKind: mcpServer
+                      name: openaiDeveloperDocs
+                      necessity: required
+                    - capabilityKind: tool
+                      name: hf_jobs
+                      necessity: conditional
+                ---
+                # Capability skill
+                """);
+
+        var capabilities = new SkillParser().parse(temp).requirements().stream()
+                .filter(CapabilityRequirement.class::isInstance)
+                .map(CapabilityRequirement.class::cast).toList();
+
+        assertThat(capabilities).extracting(CapabilityRequirement::name)
+                .containsExactly("openaiDeveloperDocs", "hf_jobs");
+        assertThat(capabilities.getFirst().necessity()).isEqualTo(RequirementNecessity.REQUIRED);
+        assertThat(capabilities.get(1).necessity()).isEqualTo(RequirementNecessity.CONDITIONAL);
+    }
 }

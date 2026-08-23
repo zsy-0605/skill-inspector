@@ -5,7 +5,7 @@
   "additionalProperties": false,
   "required": ["schemaVersion", "requirements"],
   "properties": {
-    "schemaVersion": {"type": "string", "const": "1.0"},
+    "schemaVersion": {"type": "string", "enum": ["1.0", "1.1"]},
     "requirements": {
       "type": "array",
       "items": {
@@ -13,8 +13,9 @@
         "additionalProperties": false,
         "required": ["type", "name", "necessity", "source", "confidence", "evidence"],
         "properties": {
-          "type": {"enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package"]},
+          "type": {"enum": ["runtime", "command", "environmentVariable", "file", "directory", "operatingSystem", "package", "capability"]},
           "ecosystem": {"enum": ["python", "npm", "maven"], "description": "Required only when type is package."},
+          "capabilityKind": {"enum": ["mcpServer", "tool", "capability"], "description": "Required only when type is capability."},
           "name": {"type": "string", "minLength": 1, "maxLength": 500, "description": "Canonical dependency name; use operating-system for operatingSystem."},
           "required": {"type": "string", "maxLength": 500, "description": "Backward-compatible constraint field. Defaults to * for runtimes/packages and present otherwise."},
           "version": {"type": "string", "maxLength": 500, "description": "Package version constraint; alias of required for package entries."},
@@ -44,9 +45,27 @@
             "if": {"properties": {"type": {"const": "package"}}, "required": ["type"]},
             "then": {"required": ["ecosystem"]},
             "else": {"not": {"required": ["ecosystem"]}}
+          },
+          {
+            "if": {"properties": {"type": {"const": "capability"}}, "required": ["type"]},
+            "then": {
+              "required": ["capabilityKind"],
+              "properties": {"required": {"const": "available"}}
+            },
+            "else": {"not": {"required": ["capabilityKind"]}}
           }
         ]
       }
     }
-  }
+  },
+  "allOf": [
+    {
+      "if": {
+        "properties": {
+          "requirements": {"contains": {"properties": {"type": {"const": "capability"}}, "required": ["type"]}}
+        }
+      },
+      "then": {"properties": {"schemaVersion": {"const": "1.1"}}}
+    }
+  ]
 }

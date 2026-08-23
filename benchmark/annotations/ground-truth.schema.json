@@ -23,8 +23,11 @@
             "items": {
               "type": "object",
               "required": ["type", "name"],
-              "properties": {"type": {"type": "string"}, "ecosystem": {"enum": ["python", "npm", "maven"]}, "name": {"type": "string"}},
-              "allOf": [{"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem"]}}]
+              "properties": {"type": {"type": "string"}, "ecosystem": {"enum": ["python", "npm", "maven"]}, "capabilityKind": {"enum": ["mcpServer", "tool", "capability"]}, "name": {"type": "string"}},
+              "allOf": [
+                {"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem"]}},
+                {"if": {"properties": {"type": {"const": "capability"}}}, "then": {"required": ["capabilityKind"]}}
+              ]
             }
           },
           "dependencies": {
@@ -35,6 +38,7 @@
               "properties": {
                 "type": {"type": "string"},
                 "ecosystem": {"enum": ["python", "npm", "maven"]},
+                "capabilityKind": {"enum": ["mcpServer", "tool", "capability"]},
                 "name": {"type": "string"},
                 "required": {"type": "string"},
                 "version": {"type": "string"},
@@ -44,7 +48,10 @@
                 "evidence": {"type": "string"},
                 "notes": {"type": "string"}
               },
-              "allOf": [{"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem", "version"]}}]
+              "allOf": [
+                {"if": {"properties": {"type": {"const": "package"}}}, "then": {"required": ["ecosystem", "version"]}},
+                {"if": {"properties": {"type": {"const": "capability"}}}, "then": {"required": ["capabilityKind"]}}
+              ]
             }
           },
           "notes": {"type": "string"},

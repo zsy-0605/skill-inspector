@@ -16,6 +16,7 @@ public final class HumanReportRenderer {
             checks.forEach(check -> {
                 out.append(symbol(check.status())).append(" ").append(check.name());
                 if (check.ecosystem() != null) out.append(" [").append(check.ecosystem().jsonValue()).append("]");
+                if (check.capabilityKind() != null) out.append(" [").append(check.capabilityKind().jsonValue()).append("]");
                 if (!check.required().equals("present")) out.append(" ").append(check.required());
                 out.append("\n  Actual: ").append(check.actual()).append("\n  Status: ").append(check.status())
                         .append(" | Source: ").append(check.source()).append(" | Necessity: ").append(check.necessity());
@@ -23,6 +24,8 @@ public final class HumanReportRenderer {
                 if (check.evidence() != null) out.append("\n  Evidence: ").append(check.evidence());
                 if (check.matched() != null) out.append("\n  Matched: ").append(check.matched());
                 if (check.inferenceRule() != null) out.append("\n  Rule: ").append(check.inferenceRule());
+                if (check.resolvedCapability() != null) out.append("\n  Resolved Capability: ").append(check.resolvedCapability());
+                if (check.capabilitySource() != null) out.append("\n  Capability Source: ").append(check.capabilitySource());
                 out.append("\n");
             });
         });
@@ -40,7 +43,7 @@ public final class HumanReportRenderer {
     private String title(RequirementType type) { return switch (type) {
         case RUNTIME -> "Runtimes"; case COMMAND -> "Commands"; case ENVIRONMENT_VARIABLE -> "Environment";
         case FILE -> "Files"; case DIRECTORY -> "Directories"; case OPERATING_SYSTEM -> "Operating System";
-        case PACKAGE -> "Packages";
+        case PACKAGE -> "Packages"; case CAPABILITY -> "Runtime Capabilities";
     }; }
     private String symbol(CheckStatus status) { return switch (status) { case PASS -> "✓"; case FAIL -> "✗"; case WARNING -> "!"; case UNKNOWN -> "?"; }; }
 }

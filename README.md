@@ -33,7 +33,8 @@ Skill Inspector 是一个 **Agent Skill**，用于在安装、启用、执行、
           ├── 运行时及版本
           ├── 命令与环境变量
           ├── 文件、目录与操作系统
-          └── Python / npm / Maven 包
+          ├── Python / npm / Maven 包
+          └── MCP Server / Agent Tool / Capability Snapshot
                     │
                     v
            READY / WARNING / NOT READY
@@ -86,6 +87,8 @@ Result: NOT READY
 
 V0.2 会静态读取根目录的 `requirements.txt`、`pyproject.toml`、`package.json` 和 `pom.xml`，并只读检查本地 Python 包元数据、`node_modules` 与 Maven 本地仓库。它不会 import/require 包、运行 npm lifecycle script、调用包管理器安装依赖或查询远程 Registry。不支持的版本表达式返回 `UNKNOWN`。
 
+V0.3 增加平台无关的 Runtime Capability Snapshot，用于判断当前会话是否明确宣告某个 MCP Server、Agent Tool 或抽象 Capability 可用。Inspector 只读取外部 JSON 清单，不读取任何平台的私有配置，不启动或连接 MCP Server，也不枚举、调用 Tool。`AVAILABLE` 只代表当前运行时清单宣告可用，不保证权限、认证、参数、网络或实际执行成功。
+
 ### 环境要求与构建
 
 - 唯一的系统构建前提是 JDK 21+
@@ -119,6 +122,16 @@ java -jar target/skill-inspector.jar verify ./third-party-skill \
   --requirements requirements.json --json
 ```
 
+同时验证当前 Agent Runtime 已公开的能力清单：
+
+```bash
+java -jar target/skill-inspector.jar verify ./examples/capability-skill \
+  --requirements ./examples/capability-skill/requirements.json \
+  --capabilities ./examples/capability-skill/runtime-capabilities.json --json
+```
+
+Snapshot 由 [`references/runtime-capabilities.schema.json`](references/runtime-capabilities.schema.json) 定义。每种能力的清单覆盖度必须标为 `COMPLETE` 或 `PARTIAL`：完整清单中未出现的必需能力会失败，部分清单中未出现的能力保持 `UNKNOWN`；无 Snapshot 时同样保持 `UNKNOWN`，不会假装 READY。名称精确且区分大小写，只接受 Snapshot 明示的 alias。
+
 交接格式由 [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json) 定义。`source` 表示依赖是如何被发现的，`necessity` 则独立表示该依赖属于 `REQUIRED`、`OPTIONAL` 还是 `CONDITIONAL`。因此，缺失的必需语义依赖可以阻止就绪，同时不会被错误描述成 Skill 已明确声明的依赖。
 
 退出码：READY/WARNING 为 `0`，兼容性失败为 `2`，无效输入或检查错误为 `1`。调用方还必须读取 `status`/`readiness`；WARNING 并不等于已经就绪。
@@ -135,9 +148,16 @@ compatibility:
   os: [linux, macos]
   files: [./config.json]
   directories: [./scripts]
+  capabilities:
+    - capabilityKind: mcpServer
+      name: docsServer
+      necessity: required
+    - capabilityKind: tool
+      name: search_docs
+      necessity: conditional
 ```
 
-该扩展是可选的、便于人工阅读，并且不会影响忽略未知字段的运行时。对象形式、可选依赖、评分方式和 JSON 契约请参阅 [V0.1 规范](references/compatibility-spec.md)。
+该扩展是可选的、便于人工阅读，并且不会影响忽略未知字段的运行时。对象形式、可选依赖、Snapshot 状态、评分方式和 JSON 契约请参阅 [V0.3 规范](references/compatibility-spec.md)。
 
 ### 测试与评估
 
@@ -146,7 +166,7 @@ compatibility:
 ./scripts/run-evals.sh
 ```
 
-JUnit 覆盖确定性检查器与解析逻辑。Eval Runner 会构建项目，并执行跨平台合成用例，覆盖 READY、WARNING、命令/环境变量/文件缺失、不可能满足的运行时、操作系统不匹配、推断依赖溯源以及“不执行目标代码”原则。触发提示词和基线方法位于 [`evals/`](evals/README.md)。
+JUnit 覆盖确定性检查器与解析逻辑。Eval Runner 会构建项目并执行 29 个跨平台合成用例，其中 10 个覆盖 Capability Snapshot 的完整/部分清单、精确名称、显式 alias、UNKNOWN、缺失阻断、冲突拒绝以及“不执行目标代码”原则。触发提示词和基线方法位于 [`evals/`](evals/README.md)。
 
 #### 真实 Skill 受控基准测试
 
@@ -175,6 +195,8 @@ V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环�
 
 详细信息请参阅[基准测试协议](benchmark/README.md)、[固定数据集](benchmark/dataset.json)、[受控环境](benchmark/environment.json)、[V0.1.1 完整结果](benchmark/results/controlled-2026-08-21.md)和 [V0.2 完整结果](benchmark/results/controlled-v0.2.0-rc1.md)。
 
+V0.3 当前只完成 10 个确定性 Capability Eval 和 6 个固定真实样本的静态 pilot 标注；尚未运行新的受控模型 Benchmark，因此这里不报告 Capability Recall/Precision。正式比较需要扩充并人工确认语料与 Snapshot 后单独审批。
+
 ### 当前支持范围
 
 已支持：
@@ -189,11 +211,14 @@ V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环�
 - YAML frontmatter 解析，以及基于脚本扩展名、shebang 和简单 shell 命令位置的保守高置信度推断
 - 带证据位置、匹配文本、规则、置信度、脱敏和符号链接排除的可解释推断
 - `source` 与 `necessity` 相互独立的 Agent-to-Java 结构化语义交接
+- MCP Server、Agent Tool 与显式 Capability 的 Snapshot 存在性检查
+- `COMPLETE`/`PARTIAL` 覆盖语义、四种可用性状态和显式 alias 匹配
 - `DECLARED`/`INFERRED` 溯源、READY/WARNING/NOT READY、透明评分以及文本和 JSON 输出
 
 暂不支持：
 
-- MCP、Agent Tool、网络、权限、远程包 Registry 或 Skill-to-Skill 能力检查
+- MCP/Tool 主动连接、启动、调用、枚举，以及网络、认证、权限和参数 Schema 验证
+- 自动读取 Agent 私有配置、平台专属适配、远程 Capability Registry 或 Skill-to-Skill 能力检查
 - 由 Java 进行通用自然语言依赖提取；语义理解由 Agent 负责
 - 自动安装、自动修复或修改目标 Skill
 - 恶意代码、提示词注入、漏洞、病毒或供应链扫描
@@ -208,7 +233,7 @@ V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环�
 - **V0.1：** 本地兼容性检查——已完成。
 - **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
 - **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0`。
-- **V0.3：** MCP 与 Agent Tool Runtime Adapter。
+- **V0.3：** 平台无关的 MCP、Agent Tool 与 Capability Snapshot 检查——候选版本 `0.3.0-rc1`。
 - **V0.4：** Skill-to-Skill 依赖。
 
 长期方向包括能力图谱、迁移辅助、Skill CI/Registry 集成和基于运行轨迹的演进；这些内容目前仍明确位于项目范围之外。
@@ -246,7 +271,8 @@ User: “Can I run this Skill?”
        ├── runtimes and versions
        ├── commands and environment
        ├── files, directories, OS
-       └── Python / npm / Maven packages
+       ├── Python / npm / Maven packages
+       └── MCP Server / Agent Tool / Capability Snapshot
                  │
                  v
         READY / WARNING / NOT READY
@@ -299,6 +325,8 @@ Result: NOT READY
 
 V0.2 statically reads root-level `requirements.txt`, `pyproject.toml`, `package.json`, and `pom.xml`, then checks local Python distribution metadata, `node_modules`, and the local Maven repository in read-only mode. It never imports/requires a package, runs an npm lifecycle script, invokes a package manager to install dependencies, or queries a remote registry. Unsupported version expressions return `UNKNOWN`.
 
+V0.3 adds a platform-neutral Runtime Capability Snapshot for checking whether the current session explicitly advertises an MCP server, Agent tool, or abstract capability. The inspector reads only the external JSON inventory. It does not read private platform configuration, start or connect to MCP servers, enumerate tools, or invoke a tool. `AVAILABLE` means only that the runtime inventory advertises the capability—not that permissions, authentication, parameters, network access, or execution will succeed.
+
 ### Requirements and build
 
 - JDK 21+ is the only system build prerequisite
@@ -332,6 +360,16 @@ java -jar target/skill-inspector.jar verify ./third-party-skill \
   --requirements requirements.json --json
 ```
 
+Verify the capability inventory already exposed by the current Agent runtime:
+
+```bash
+java -jar target/skill-inspector.jar verify ./examples/capability-skill \
+  --requirements ./examples/capability-skill/requirements.json \
+  --capabilities ./examples/capability-skill/runtime-capabilities.json --json
+```
+
+The Snapshot contract is [`references/runtime-capabilities.schema.json`](references/runtime-capabilities.schema.json). Coverage for each capability kind is `COMPLETE` or `PARTIAL`: a required capability absent from a complete inventory fails, while absence from a partial inventory stays `UNKNOWN`. No Snapshot is also `UNKNOWN`, never READY. Names are exact and case-sensitive; only aliases explicitly listed in the Snapshot are accepted.
+
 The handoff schema is [`references/semantic-requirements.schema.json`](references/semantic-requirements.schema.json). `source` describes how a requirement was found; `necessity` independently records whether it is `REQUIRED`, `OPTIONAL`, or `CONDITIONAL`. A missing required semantic dependency can therefore block readiness without being misrepresented as a declaration.
 
 Exit codes are `0` for READY/WARNING, `2` for compatibility FAIL, and `1` for invalid input or an inspection error. Callers must also inspect `status`/`readiness`; WARNING is not proof of readiness.
@@ -348,9 +386,16 @@ compatibility:
   os: [linux, macos]
   files: [./config.json]
   directories: [./scripts]
+  capabilities:
+    - capabilityKind: mcpServer
+      name: docsServer
+      necessity: required
+    - capabilityKind: tool
+      name: search_docs
+      necessity: conditional
 ```
 
-The extension is optional, human-readable, and safe for runtimes that ignore unknown fields. See [the V0.1 specification](references/compatibility-spec.md) for object forms, optional dependencies, scoring, and the JSON contract.
+The extension is optional, human-readable, and safe for runtimes that ignore unknown fields. See [the V0.3 specification](references/compatibility-spec.md) for object forms, optional dependencies, Snapshot semantics, scoring, and the JSON contract.
 
 ### Tests and evaluations
 
@@ -359,7 +404,7 @@ The extension is optional, human-readable, and safe for runtimes that ignore unk
 ./scripts/run-evals.sh
 ```
 
-JUnit covers deterministic checkers and parsing. The Eval runner builds the project and exercises cross-platform synthetic cases for READY, WARNING, missing command/env/file, impossible runtime, OS mismatch, inferred dependency provenance, and the no-execution invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
+JUnit covers deterministic checkers and parsing. The Eval runner builds the project and executes 29 cross-platform synthetic cases, including 10 Capability Snapshot cases for complete/partial inventories, exact names, explicit aliases, UNKNOWN, missing blockers, conflict rejection, and the no-execution invariant. Trigger prompts and baseline methodology live in [`evals/`](evals/README.md).
 
 #### Controlled real-world benchmark
 
@@ -388,6 +433,8 @@ Strict false ready (`NOT_READY -> READY`) was 0% for both conditions in V0.1.1 a
 
 See [the benchmark protocol](benchmark/README.md), [pinned dataset](benchmark/dataset.json), [controlled environment](benchmark/environment.json), [V0.1.1 results](benchmark/results/controlled-2026-08-21.md), and [V0.2 results](benchmark/results/controlled-v0.2.0-rc1.md).
 
+V0.3 currently has 10 deterministic capability evals and static pilot labels for six pinned real samples. No new controlled model benchmark has been run, so no capability recall/precision result is claimed here. A formal comparison requires an expanded, reviewed corpus and fixed Snapshots under separate approval.
+
 ### Current scope
 
 Supported:
@@ -402,11 +449,14 @@ Supported:
 - YAML frontmatter parsing and conservative high-confidence inference from script extensions, shebangs, and simple shell command positions
 - Explainable inference with evidence location, matched text, rule, confidence, redaction, and symbolic-link exclusion
 - Structured Agent-to-Java semantic handoff with independent source and necessity dimensions
+- Snapshot presence checks for MCP servers, Agent tools, and explicit capabilities
+- `COMPLETE`/`PARTIAL` coverage, four availability states, and explicit alias matching
 - DECLARED/INFERRED provenance, READY/WARNING/NOT READY, transparent scores, human and JSON output
 
 Not supported:
 
-- MCP, Agent Tool, network, permission, remote package registry, or Skill-to-Skill capability checks
+- Active MCP/tool connection, startup, invocation, enumeration, network, authentication, permission, or parameter-schema checks
+- Private Agent configuration discovery, platform-specific adapters, remote capability registries, or Skill-to-Skill capability checks
 - General natural-language dependency extraction in Java; the Agent handles semantic interpretation
 - Automatic installation, remediation, or target modification
 - Malware, prompt-injection, vulnerability, virus, or supply-chain scanning
@@ -421,7 +471,7 @@ The package structure separates `parse`, `model`, `check`, `core`, `report`, and
 - **V0.1:** Local compatibility inspection — complete.
 - **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
 - **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0`.
-- **V0.3:** MCP and Agent Tool runtime adapters.
+- **V0.3:** Platform-neutral MCP, Agent Tool, and Capability Snapshot checks — release candidate `0.3.0-rc1`.
 - **V0.4:** Skill-to-Skill dependencies.
 
 Longer-term possibilities include a capability graph, migration assistance, Skill CI/registry integration, and trace-based evolution. They intentionally remain outside the current scope.

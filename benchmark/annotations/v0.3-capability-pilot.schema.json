@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schemaVersion", "datasetVersion", "scope", "samples"],
+  "properties": {
+    "schemaVersion": {"const": "1.0"},
+    "datasetVersion": {"type": "string", "minLength": 1},
+    "scope": {"type": "string", "minLength": 1},
+    "samples": {
+      "type": "array", "minItems": 6,
+      "items": {
+        "type": "object", "additionalProperties": false,
+        "required": ["skillId", "classification", "requirements", "reason"],
+        "properties": {
+          "skillId": {"type": "string", "minLength": 1},
+          "classification": {"enum": ["POSITIVE_REQUIRED", "POSITIVE_WITH_FALLBACK", "NEGATIVE"]},
+          "requirements": {
+            "type": "array",
+            "items": {
+              "type": "object", "additionalProperties": false,
+              "required": ["capabilityKind", "name", "necessity", "evidence"],
+              "properties": {
+                "capabilityKind": {"enum": ["mcpServer", "tool", "capability"]},
+                "name": {"type": "string", "minLength": 1},
+                "necessity": {"enum": ["REQUIRED", "OPTIONAL", "CONDITIONAL"]},
+                "evidence": {"type": "string", "pattern": "^[^:]+:[1-9][0-9]*$"}
+              }
+            }
+          },
+          "reason": {"type": "string", "minLength": 1}
+        }
+      }
+    }
+  }
+}

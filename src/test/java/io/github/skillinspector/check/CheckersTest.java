@@ -62,9 +62,34 @@ class CheckersTest {
         assertThat(new PackageChecker().check(requirement, root, probe).status()).isEqualTo(CheckStatus.UNKNOWN);
     }
 
+    @Test void capabilityCheckerPreservesAvailabilitySemanticsAndResolvedAlias() {
+        CapabilityRequirement required = CapabilityRequirement.declared(CapabilityKind.TOOL, "search_docs",
+                RequirementNecessity.REQUIRED, "SKILL.md:8");
+        FakeProbe probe = new FakeProbe();
+        probe.capability = new CapabilityMatch(CapabilityAvailability.AVAILABLE, "AVAILABLE",
+                "mcp__docs__search", CapabilitySource.RUNTIME_INVENTORY);
+        CheckResult available = new CapabilityChecker().check(required, root, probe);
+        assertThat(available.status()).isEqualTo(CheckStatus.PASS);
+        assertThat(available.resolvedCapability()).isEqualTo("mcp__docs__search");
+        assertThat(available.capabilitySource()).isEqualTo(CapabilitySource.RUNTIME_INVENTORY);
+
+        probe.capability = CapabilityMatch.absent();
+        assertThat(new CapabilityChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.FAIL);
+        CapabilityRequirement conditional = CapabilityRequirement.declared(CapabilityKind.TOOL, "search_docs",
+                RequirementNecessity.CONDITIONAL, "SKILL.md:8");
+        assertThat(new CapabilityChecker().check(conditional, root, probe).status()).isEqualTo(CheckStatus.WARNING);
+
+        probe.capability = CapabilityMatch.partial();
+        assertThat(new CapabilityChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.UNKNOWN);
+        probe.capability = new CapabilityMatch(CapabilityAvailability.CONFIGURED, "CONFIGURED",
+                "search_docs", CapabilitySource.STATIC_CONFIGURATION);
+        assertThat(new CapabilityChecker().check(required, root, probe).status()).isEqualTo(CheckStatus.UNKNOWN);
+    }
+
     private static final class FakeProbe implements EnvironmentProbe {
         boolean command, env, file, directory; String os = "linux"; Optional<String> runtime = Optional.of("21.0.4");
         PackageInstallation packageInstallation = PackageInstallation.unknown();
+        CapabilityMatch capability = CapabilityMatch.noSnapshot();
         public String operatingSystem() { return os; }
         public boolean commandExists(String name) { return command; }
         public boolean environmentVariablePresent(String name) { return env; }
@@ -72,5 +97,6 @@ class CheckersTest {
         public boolean directoryExists(Path path) { return directory; }
         public Optional<String> runtimeVersion(String name) { return runtime; }
         public PackageInstallation packageInstallation(PackageRequirement requirement, Path skillRoot) { return packageInstallation; }
+        public CapabilityMatch capability(CapabilityRequirement requirement) { return capability; }
     }
 }
