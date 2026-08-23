@@ -207,7 +207,7 @@ V0.2 在相同的 30 个固定 Skill、模型、三轮协议和基础 Linux 环�
 
 - **V0.1：** 本地兼容性检查——已完成。
 - **V0.1.1：** 最小语义交接、30 个固定样本、三轮受控基准测试和人工复核标准答案——已完成。
-- **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0-rc1`。
+- **V0.2：** Python/npm/Maven 包依赖检查、语义交接与真实基准测试——`v0.2.0`。
 - **V0.3：** MCP 与 Agent Tool Runtime Adapter。
 - **V0.4：** Skill-to-Skill 依赖。
 
@@ -420,7 +420,7 @@ The package structure separates `parse`, `model`, `check`, `core`, `report`, and
 
 - **V0.1:** Local compatibility inspection — complete.
 - **V0.1.1:** Minimal semantic handoff, 30 pinned samples, three-run controlled benchmark, and human-reviewed ground truth — complete.
-- **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0-rc1`.
+- **V0.2:** Python/npm/Maven package inspection, semantic handoff, and real-world benchmark — `v0.2.0`.
 - **V0.3:** MCP and Agent Tool runtime adapters.
 - **V0.4:** Skill-to-Skill dependencies.
 
